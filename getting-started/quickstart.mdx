@@ -35,7 +35,7 @@ response = requests.get(
 
 data = response.json()
 for result in data["results"]:
-    print(result["title"], result["url"])
+    print(result["title"], result["link"])
 ```
 
 ```javascript JavaScript
@@ -45,7 +45,7 @@ const response = await fetch(
 );
 
 const data = await response.json();
-data.results.forEach(r => console.log(r.title, r.url));
+data.results.forEach(r => console.log(r.title, r.link));
 ```
 
 </CodeGroup>
@@ -54,21 +54,30 @@ data.results.forEach(r => console.log(r.title, r.url));
 
 <Step title="Read the response">
 
-The API returns a JSON object with a `results` array. Each result includes a `title`, `url`, and `snippet`:
+The API returns a JSON object with top-level fields and a `results` array. Each result includes a `title`, `link`, `desc`, and `source`:
 
 ```json
 {
+  "results_type": "search",
+  "answer": "",
+  "type": "search",
+  "title": "what is RAG",
   "results": [
     {
       "title": "Retrieval-Augmented Generation (RAG) Explained",
-      "url": "https://example.com/rag-explained",
-      "snippet": "RAG combines a retrieval system with a language model to generate responses grounded in retrieved documents.",
-      "type": "website",
-      "domain": "example.com"
+      "link": "https://example.com/rag-explained",
+      "desc": "RAG combines a retrieval system with a language model to generate responses grounded in retrieved documents.",
+      "source": "example.com",
+      "type": "website"
     }
   ],
-  "intent": "web",
-  "query": "what is RAG"
+  "metrics": {
+    "query": "what is RAG",
+    "intent": "FallbackSearchIntent",
+    "duration": 234,
+    "results_returned": 10,
+    "total_results_found": 42
+  }
 }
 ```
 

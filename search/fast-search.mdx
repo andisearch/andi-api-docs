@@ -44,17 +44,26 @@ Fast search is the default — no `depth` parameter is needed. Setting `depth=fa
 
 ```json
 {
+  "results_type": "news",
+  "answer": "",
+  "type": "news",
+  "title": "latest AI news",
   "results": [
     {
       "title": "Latest AI News and Developments",
-      "url": "https://example.com/ai-news",
-      "snippet": "A roundup of the latest developments in artificial intelligence...",
-      "type": "website",
-      "domain": "example.com"
+      "link": "https://example.com/ai-news",
+      "desc": "A roundup of the latest developments in artificial intelligence...",
+      "source": "example.com",
+      "type": "news"
     }
   ],
-  "intent": "news",
-  "query": "latest AI news"
+  "metrics": {
+    "query": "latest AI news",
+    "intent": "LatestNewsIntent",
+    "duration": 890,
+    "results_returned": 10,
+    "total_results_found": 50
+  }
 }
 ```
 
@@ -66,12 +75,7 @@ Fast search is the default — no `depth` parameter is needed. Setting `depth=fa
 | Spell correction | No | Yes |
 | Source coverage | Standard | Extended |
 | Analysis depth | Standard | Enhanced |
-| Pricing | $7 per 1,000 queries | $25 per 1,000 queries |
 
 <Tip>
 Start with fast search. Switch to deep search only when you need spell correction, broader coverage, or enhanced analysis.
 </Tip>
-
-## Pricing
-
-Fast search costs **$7 per 1,000 queries**. Monitor your usage in the [API Console](https://console.andiai.com).

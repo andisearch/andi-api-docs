@@ -9,34 +9,50 @@ All parameters are passed as query string parameters on the `GET /api/v1/search`
 
 | Parameter | Type | Default | Description |
 |---|---|---|---|
-| `q` | string | **required** | Search query string |
-| `limit` | integer | `10` | Maximum results to return (1–50) |
+| `q` | string | **required** | Search query string. Also accepts a JSON array of up to 5 queries (e.g., `["query one", "query two"]`). |
+| `limit` | integer | `10` | Maximum results to return (minimum 1) |
 | `offset` | integer | `0` | Results to skip for pagination |
 | `depth` | string | `fast` | Search mode: `fast` or `deep` |
-| `intent` | string | auto | Force search intent: `web`, `news`, `videos`, `images`, `weather`, `calculation` |
+| `intent` | string | auto | Force search intent. See [intent values](#intent-values) below. |
+
+### Intent values
+
+When not set, the API auto-detects intent from the query. You can force a specific intent using common aliases:
+
+| Alias | Description | Alias | Description |
+|---|---|---|---|
+| `search` | General web search | `news` | Latest news results |
+| `video` | Video search | `images` | Image search |
+| `weather` | Weather data | `calculate` | Math computation |
+| `wiki` | Wikipedia/knowledge | `knowledge` | Academic knowledge |
+| `code` | Programming results | `recipe` | Recipe results |
+| `place` | Business search | `places` | Location search |
+| `questions` | Q&A results | `time` | Time queries |
+
+The API also accepts full intent names (e.g., `FallbackSearchIntent`, `VideoSearchIntent`) and resolves matches flexibly through exact match, case-insensitive match, and substring match.
 
 ## Output parameters
 
 | Parameter | Type | Default | Description |
 |---|---|---|---|
-| `format` | string | `json` | Response format: `json` or `jsonl` |
-| `metadata` | boolean | `false` | Include search metrics in the response |
+| `format` | string | `json` | Response format: `json` or `context`. The `context` format returns results as markdown text, suitable for passing to language models. |
+| `metadata` | string | `basic` | Metadata level: `basic` or `full`. With `full`, results include `contentType` and `reader` data. |
 | `extracts` | boolean | `false` | Include longer text extracts from result pages |
 
 ## Filtering parameters
 
 | Parameter | Type | Default | Description |
 |---|---|---|---|
-| `safe` | string | `moderate` | Safe search level: `off`, `moderate`, `strict` |
-| `country` | string | — | ISO 3166-1 country code (e.g., `us`, `gb`, `de`) |
-| `language` | string | — | ISO 639-1 language code (e.g., `en`, `es`, `fr`) |
-| `units` | string | `imperial` | Unit system for weather/calculations: `metric`, `imperial` |
+| `safe` | boolean | `false` | Enable safe search filtering. Pass `true` to filter explicit content. |
+| `country` | string | `US` | ISO 3166-1 country code (e.g., `US`, `GB`, `DE`) |
+| `language` | string | `en` | ISO 639-1 language code (e.g., `en`, `es`, `fr`) |
+| `units` | string | auto | Unit system for weather/calculations: `metric`, `imperial`. Defaults based on `country` — `imperial` for `US`, `metric` for all others. |
 
 ## Date filtering
 
 | Parameter | Type | Description |
 |---|---|---|
-| `dateRange` | string | Relative range: `day`, `week`, `month`, `year` |
+| `dateRange` | string | Relative range: `day`, `week`, `month`, `year`, `24h`, `7d`, `30d`, `90d`, `1y` |
 | `dateFrom` | date | Results published on or after this date (`YYYY-MM-DD`) |
 | `dateTo` | date | Results published on or before this date (`YYYY-MM-DD`) |
 
@@ -99,5 +115,13 @@ curl "https://search-api.andisearch.com/api/v1/search?q=climate+change+effects&d
 
 ```bash
 curl "https://search-api.andisearch.com/api/v1/search?q=product+launch&dateRange=month&includeDomains=techcrunch.com,theverge.com" \
+  -H "x-api-key: YOUR_API_KEY"
+```
+
+### Multi-query search
+
+```bash
+curl -G "https://search-api.andisearch.com/api/v1/search" \
+  --data-urlencode 'q=["artificial intelligence", "machine learning"]' \
   -H "x-api-key: YOUR_API_KEY"
 ```

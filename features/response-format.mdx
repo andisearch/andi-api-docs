@@ -3,20 +3,35 @@ title: Response format
 description: Structure of the Andi Search API response, including result types and instant answers.
 ---
 
-All responses are JSON objects with a `results` array and metadata about the search.
+All responses are JSON objects. The `format=context` option returns markdown text instead — see [query parameters](/features/query-parameters) for details.
 
 ## Top-level fields
 
-| Field | Type | Description |
-|---|---|---|
-| `results` | array | Search results (always present) |
-| `intent` | string | Detected search intent |
-| `query` | string | Query as processed (may differ from input after spell correction) |
-| `correctedQuery` | string | Spell-corrected query (only present when deep search corrects a misspelling) |
-| `weather` | object | Weather data (when intent is `weather`) |
-| `calculation` | object | Calculation result (when intent is `calculation`) |
-| `images` | array | Image results (when intent is `images`) |
-| `metrics` | object | Performance metrics (when `metadata=true`) |
+| Field | Type | Always present | Description |
+|---|---|---|---|
+| `results_type` | string | Yes | Category of results (e.g., `search`, `news`, `images`) |
+| `answer` | string | Yes | Generated answer for the query (may be empty) |
+| `type` | string | Yes | Same as `results_type` |
+| `title` | string | Yes | Title summarizing the search results |
+| `results` | array | Yes | Search results |
+| `metrics` | object | Yes | Search performance metrics |
+| `correctedQuery` | string | No | Spell-corrected query (deep search only, when a correction is made) |
+| `related_searches` | array | No | Related search suggestions |
+| `topics` | array | No | Related topics |
+
+### Type-specific arrays
+
+Depending on the query intent, the response may include additional arrays alongside `results`:
+
+| Field | Present when |
+|---|---|
+| `videos` | Video intent queries |
+| `images` | Image intent queries |
+| `news` | News intent queries |
+| `places` | Location/business queries |
+| `profiles` | People-related queries |
+| `socials` | Social media queries |
+| `academics` | Scholarly queries |
 
 ## Search results
 
@@ -25,23 +40,36 @@ Each result in the `results` array has this structure:
 | Field | Type | Always present | Description |
 |---|---|---|---|
 | `title` | string | Yes | Page title |
-| `url` | string | Yes | Page URL |
-| `snippet` | string | Yes | Relevant text excerpt |
+| `link` | string | Yes | Page URL |
+| `desc` | string | Yes | Page description or summary |
+| `source` | string | Yes | Domain name |
+| `type` | string | Yes | Result type (see [result types](#result-types)) |
+| `date` | string | No | Publication date |
+| `image` | string | No | Preview image URL |
+| `snippet` | string | No | Query-relevant text excerpt (distinct from `desc`) |
+| `answer` | string | No | Inline answer for instant answer results |
 | `extract` | string | No | Longer text extract (when `extracts=true`) |
-| `type` | string | No | Result type: `website`, `news`, `video` |
-| `publishedDate` | string | No | Publication date (ISO 8601) |
-| `domain` | string | No | Domain name |
-| `favicon` | string | No | Favicon URL |
+| `contentType` | string | No | Content type (when `metadata=full`) |
+| `reader` | object | No | Extracted page content (when `metadata=full`) |
 
 ## Result types
 
 The `type` field indicates the kind of result:
 
-- **`website`** — Standard web page result
-- **`news`** — News article with publication date
-- **`video`** — Video content
-
-The result type is determined by the content and the detected intent. A query for "latest news about AI" will return results with `type: "news"`.
+| Type | Description |
+|---|---|
+| `website` | Standard web page |
+| `news` | News article |
+| `video` | Video content |
+| `image` | Image content |
+| `place` | Business or place |
+| `profile` | Person or entity profile |
+| `social` | Social media content |
+| `academic` | Scholarly or research content |
+| `calculation` | Math computation result |
+| `weather` | Weather data |
+| `computation` | Computed answer |
+| `instant answer` | Direct answer to a factual query |
 
 ## Instant answers
 
@@ -53,29 +81,47 @@ Queries about weather return a `weather` object:
 
 ```json
 {
-  "results": [...],
-  "intent": "weather",
+  "results_type": "weather",
+  "answer": "",
+  "type": "weather",
+  "title": "Weather in San Francisco",
+  "results": [],
   "weather": {
-    "location": "San Francisco, CA",
+    "location": {
+      "name": "San Francisco",
+      "country": "US",
+      "coordinates": {
+        "latitude": 37.7749,
+        "longitude": -122.4194
+      }
+    },
     "temperature": 62,
-    "units": "F",
-    "condition": "Partly Cloudy",
+    "feelsLike": 59,
+    "units": "imperial",
+    "description": "Partly Cloudy",
     "humidity": 72,
     "windSpeed": 12,
-    "windDirection": "W",
-    "forecast": [
-      {
-        "date": "2025-03-15",
-        "high": 65,
-        "low": 52,
-        "condition": "Sunny"
-      }
-    ]
+    "windDirection": 270,
+    "pressure": 1013,
+    "icon": "partly-cloudy",
+    "cloudiness": 40,
+    "visibility": 10000,
+    "timestamp": "2025-03-15T14:00:00Z"
+  },
+  "metrics": {
+    "query": "weather san francisco",
+    "intent": "WeatherIntent",
+    "timestamp": "2025-03-15T14:00:01Z",
+    "duration": 850,
+    "queries_executed": 1,
+    "api_requests_count": 2,
+    "results_returned": 0,
+    "total_results_found": 0
   }
 }
 ```
 
-Use the `units` parameter to get results in metric (`C`, km/h) or imperial (`F`, mph).
+Use the `units` parameter to get results in `metric` or `imperial`. The default is auto-detected from the `country` parameter.
 
 ### Calculation
 
@@ -83,12 +129,16 @@ Mathematical queries return a `calculation` object:
 
 ```json
 {
-  "results": [...],
-  "intent": "calculation",
+  "results_type": "computation",
+  "answer": "",
+  "type": "computation",
+  "title": "150 * 1.08",
+  "results": [],
   "calculation": {
     "expression": "150 * 1.08",
     "result": "162"
-  }
+  },
+  "metrics": { ... }
 }
 ```
 
@@ -98,53 +148,79 @@ Image queries return an `images` array:
 
 ```json
 {
-  "results": [...],
-  "intent": "images",
+  "results_type": "images",
+  "answer": "",
+  "type": "images",
+  "title": "Mountain landscape images",
+  "results": [],
   "images": [
     {
       "title": "Mountain landscape",
-      "url": "https://example.com/photo",
-      "imageUrl": "https://example.com/photo.jpg",
-      "thumbnailUrl": "https://example.com/photo_thumb.jpg",
-      "width": 1920,
-      "height": 1080
+      "link": "https://example.com/photo",
+      "image": "https://example.com/photo.jpg",
+      "source": "example.com",
+      "type": "image",
+      "t": "https://example.com/photo_thumb.jpg",
+      "w": "1920",
+      "h": "1080"
     }
-  ]
+  ],
+  "metrics": { ... }
 }
 ```
 
+Image results use abbreviated field names for dimensions: `t` (thumbnail URL), `w` (width as string), `h` (height as string).
+
 ## Search intents
 
-The `intent` field reflects what kind of search was performed:
+The `results_type` and `type` fields reflect what kind of search was performed. You can force an intent with the `intent` parameter, or let the API auto-detect it.
 
-| Intent | Triggered by | Extra fields |
+Common intent aliases:
+
+| Alias | Intent | Extra fields |
 |---|---|---|
-| `web` | General queries | — |
-| `news` | News-related queries | — |
-| `videos` | Video-related queries | — |
-| `images` | Image-related queries | `images` |
+| `search` | General web search | — |
+| `news` | News articles | `news` |
+| `video` | Video content | `videos` |
+| `images` | Image search | `images` |
 | `weather` | Weather queries | `weather` |
-| `calculation` | Math expressions | `calculation` |
+| `calculate` | Math expressions | `calculation` |
+| `wiki` | Wikipedia/knowledge | — |
+| `code` | Programming queries | — |
+| `recipe` | Recipe search | — |
+| `place` | Business search | `places` |
+| `time` | Time queries | — |
 
-You can force an intent with the `intent` parameter, or let the API auto-detect it.
+See [query parameters](/features/query-parameters#intent-values) for the full list of intent aliases.
 
 ## Metrics
 
-When `metadata=true`, the response includes a `metrics` object:
+The response always includes a `metrics` object with search performance data:
 
 ```json
 {
   "results": [...],
   "metrics": {
-    "totalTime": 234,
-    "searchTime": 189,
-    "resultCount": 42
+    "query": "machine learning",
+    "intent": "FallbackSearchIntent",
+    "timestamp": "2025-03-15T14:00:01Z",
+    "duration": 234,
+    "queries_executed": 1,
+    "api_requests_count": 3,
+    "results_returned": 10,
+    "total_results_found": 42
   }
 }
 ```
 
 | Field | Type | Description |
 |---|---|---|
-| `totalTime` | number | Total request time in milliseconds |
-| `searchTime` | number | Search execution time in milliseconds |
-| `resultCount` | number | Total results found |
+| `query` | string | The query as processed |
+| `intent` | string | Detected or forced search intent |
+| `timestamp` | string | Timestamp of the request |
+| `duration` | number | Total request time in milliseconds |
+| `queries_executed` | integer | Number of queries executed |
+| `api_requests_count` | integer | Number of API requests made |
+| `results_returned` | integer | Results returned in this response |
+| `total_results_found` | integer | Total results found across sources |
+| `cached` | boolean | Whether response was from cache (only present on cache hits) |

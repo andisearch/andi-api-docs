@@ -7,7 +7,7 @@ Rate limits control how many requests an API key can make within a time window. 
 
 ## Default limits
 
-Rate limits are configurable per API key through the [API Console](https://console.andiai.com). The default limit is set when you create a key and can be adjusted based on your needs.
+Rate limits are configured per API key through the [API Console](https://console.andiai.com). Limits use a per-second sliding window. The default limit is set when you create a key and can be adjusted based on your needs.
 
 <Info>
 Contact [support](mailto:hello+api@andiai.com) if you need higher rate limits than what's available in the console.
@@ -15,14 +15,11 @@ Contact [support](mailto:hello+api@andiai.com) if you need higher rate limits th
 
 ## Rate limit headers
 
-Responses include headers that show your current rate limit status:
+When a rate limit is exceeded, the API returns a `429` status code with a `Retry-After` header:
 
 | Header | Description |
 |---|---|
-| `X-RateLimit-Limit` | Maximum requests allowed in the current window |
-| `X-RateLimit-Remaining` | Requests remaining in the current window |
-| `X-RateLimit-Reset` | Unix timestamp when the window resets |
-| `Retry-After` | Seconds to wait before retrying (only on `429` responses) |
+| `Retry-After` | Seconds to wait before retrying (set to `1` on `429` responses) |
 
 ## Handling 429 responses
 
@@ -30,7 +27,8 @@ When you exceed your rate limit, the API returns a `429` status code:
 
 ```json
 {
-  "error": "Rate limit exceeded. Please retry after the period indicated in the Retry-After header."
+  "error": "Too Many Requests",
+  "message": "Rate limit of N requests per second exceeded"
 }
 ```
 
@@ -47,7 +45,7 @@ response = requests.get(
 )
 
 if response.status_code == 429:
-    retry_after = int(response.headers.get("Retry-After", 60))
+    retry_after = int(response.headers.get("Retry-After", 1))
     time.sleep(retry_after)
     # Retry the request
 ```

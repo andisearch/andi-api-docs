@@ -54,22 +54,28 @@ The example query intentionally misspells "quantum" — deep search corrects it 
 
 ```json
 {
+  "results_type": "search",
+  "answer": "",
+  "type": "search",
+  "title": "quantum computing applications",
   "results": [
     {
       "title": "Quantum Computing: Current Applications and Future Potential",
-      "url": "https://example.com/quantum-applications",
-      "snippet": "Quantum computing is being applied in cryptography, drug discovery, and optimization problems...",
-      "type": "website",
-      "domain": "example.com"
+      "link": "https://example.com/quantum-applications",
+      "desc": "Quantum computing is being applied in cryptography, drug discovery, and optimization problems...",
+      "source": "example.com",
+      "type": "website"
     }
   ],
-  "intent": "web",
-  "query": "quantum computing applications"
+  "correctedQuery": "quantum computing applications",
+  "metrics": {
+    "query": "quantum computing applications",
+    "intent": "FallbackSearchIntent",
+    "duration": 2340,
+    "results_returned": 10,
+    "total_results_found": 85
+  }
 }
 ```
 
-Note that the `query` field reflects the corrected spelling.
-
-## Pricing
-
-Deep search costs **$25 per 1,000 queries**. Monitor your usage in the [API Console](https://console.andiai.com).
+Note that the `correctedQuery` field shows the corrected spelling.

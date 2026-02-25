@@ -34,10 +34,10 @@ Filter by where terms appear:
 
 | Operator | Description | Example |
 |---|---|---|
-| `filetype:` | Filter by file extension | `filetype:pdf machine learning` |
+| `filetype:` | Filter by file extension (alias: `ext:`) | `filetype:pdf machine learning` |
 | `intitle:` | Term must be in the page title | `intitle:tutorial react hooks` |
 | `inurl:` | Term must be in the URL | `inurl:api documentation` |
-| `intext:` | Term must be in the body text | `intext:benchmarks LLM performance` |
+| `intext:` | Term must be in the body text (alias: `inbody:`) | `intext:benchmarks LLM performance` |
 
 ```bash
 curl "https://search-api.andisearch.com/api/v1/search?q=filetype:pdf+machine+learning+survey" \
@@ -55,19 +55,15 @@ Filter results by publication date:
 
 Dates use `YYYY-MM-DD` format.
 
-## Logical operators
+## Language operator
+
+Filter results by language:
 
 | Operator | Description | Example |
 |---|---|---|
-| `OR` | Match either term | `python OR javascript web framework` |
-| `AROUND(X)` | Terms within X words of each other | `climate AROUND(3) change` |
+| `lang:` | Results in this language (alias: `language:`) | `lang:es inteligencia artificial` |
 
-## Ranges and wildcards
-
-| Operator | Description | Example |
-|---|---|---|
-| `..` | Numeric range | `best laptops $500..$1000` |
-| `*` | Wildcard (matches any word) | `how to * in python` |
+Uses ISO 639-1 two-letter language codes.
 
 ## Combining operators
 

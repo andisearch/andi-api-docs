@@ -27,7 +27,7 @@
             "name": "q",
             "in": "query",
             "required": true,
-            "description": "Search query string. Supports query operators when `parseOperators` is enabled.",
+            "description": "Search query string. Supports query operators when `parseOperators` is enabled. You can also pass a JSON array of up to 5 queries for multi-query searches (e.g., `[\"query one\", \"query two\"]`).",
             "schema": {
               "type": "string"
             },
@@ -40,8 +40,7 @@
             "schema": {
               "type": "integer",
               "default": 10,
-              "minimum": 1,
-              "maximum": 50
+              "minimum": 1
             }
           },
           {
@@ -67,29 +66,40 @@
           {
             "name": "intent",
             "in": "query",
-            "description": "Force a specific search intent. When not set, the API auto-detects intent from the query.",
+            "description": "Force a specific search intent. When not set, the API auto-detects intent from the query. Accepts common aliases like `search`, `news`, `video`, `images`, `weather`, `wiki`, `code`, `recipe`, `place`, `time`, and others.",
             "schema": {
-              "type": "string",
-              "enum": ["web", "news", "videos", "images", "weather", "calculation"]
+              "type": "string"
+            },
+            "examples": {
+              "news": { "value": "news", "summary": "Latest news results" },
+              "video": { "value": "video", "summary": "Video search results" },
+              "images": { "value": "images", "summary": "Image search results" },
+              "weather": { "value": "weather", "summary": "Weather data" },
+              "wiki": { "value": "wiki", "summary": "Wikipedia/knowledge results" },
+              "code": { "value": "code", "summary": "Programming-related results" },
+              "recipe": { "value": "recipe", "summary": "Recipe results" },
+              "place": { "value": "place", "summary": "Business/place results" },
+              "time": { "value": "time", "summary": "Time query results" }
             }
           },
           {
             "name": "format",
             "in": "query",
-            "description": "Response format.",
+            "description": "Response format. `json` returns a JSON object. `context` returns results as markdown text, suitable for passing to language models.",
             "schema": {
               "type": "string",
-              "enum": ["json", "jsonl"],
+              "enum": ["json", "context"],
               "default": "json"
             }
           },
           {
             "name": "metadata",
             "in": "query",
-            "description": "Include metadata in the response. Set to `true` to include search metrics and debug information.",
+            "description": "Level of metadata to include. `basic` includes standard search metrics. `full` includes extended metadata with content type details and reader data on results.",
             "schema": {
-              "type": "boolean",
-              "default": false
+              "type": "string",
+              "enum": ["basic", "full"],
+              "default": "basic"
             }
           },
           {
@@ -104,11 +114,10 @@
           {
             "name": "safe",
             "in": "query",
-            "description": "Safe search filtering level.",
+            "description": "Enable safe search filtering. Pass `true` to filter explicit content.",
             "schema": {
-              "type": "string",
-              "enum": ["off", "moderate", "strict"],
-              "default": "moderate"
+              "type": "boolean",
+              "default": false
             }
           },
           {
@@ -116,27 +125,28 @@
             "in": "query",
             "description": "Two-letter ISO 3166-1 country code to localize results.",
             "schema": {
-              "type": "string"
+              "type": "string",
+              "default": "US"
             },
-            "example": "us"
+            "example": "US"
           },
           {
             "name": "language",
             "in": "query",
             "description": "Two-letter ISO 639-1 language code to filter results by language.",
             "schema": {
-              "type": "string"
+              "type": "string",
+              "default": "en"
             },
             "example": "en"
           },
           {
             "name": "units",
             "in": "query",
-            "description": "Unit system for weather and calculation results.",
+            "description": "Unit system for weather and calculation results. Defaults based on the `country` parameter — `imperial` for `US`, `metric` for all other countries.",
             "schema": {
               "type": "string",
-              "enum": ["metric", "imperial"],
-              "default": "imperial"
+              "enum": ["metric", "imperial"]
             }
           },
           {
@@ -154,7 +164,7 @@
             "description": "Relative date range filter for results.",
             "schema": {
               "type": "string",
-              "enum": ["day", "week", "month", "year"]
+              "enum": ["day", "week", "month", "year", "24h", "7d", "30d", "90d", "1y"]
             }
           },
           {
@@ -286,7 +296,8 @@
                   "$ref": "#/components/schemas/Error"
                 },
                 "example": {
-                  "error": "Invalid API key"
+                  "error": "Unauthorized",
+                  "message": "Invalid API key"
                 }
               }
             }
@@ -299,7 +310,8 @@
                   "$ref": "#/components/schemas/Error"
                 },
                 "example": {
-                  "error": "Insufficient credits. Please add credits at console.andiai.com"
+                  "error": "Insufficient Credits",
+                  "message": "Your account has insufficient credits. Please add credits to continue."
                 }
               }
             }
@@ -312,7 +324,8 @@
                   "$ref": "#/components/schemas/Error"
                 },
                 "example": {
-                  "error": "Rate limit exceeded. Please retry after the period indicated in the Retry-After header."
+                  "error": "Too Many Requests",
+                  "message": "Rate limit of N requests per second exceeded"
                 }
               }
             }
@@ -347,6 +360,22 @@
       "SearchResponse": {
         "type": "object",
         "properties": {
+          "results_type": {
+            "type": "string",
+            "description": "The type of search results returned (e.g., `search`, `news`, `images`)."
+          },
+          "answer": {
+            "type": "string",
+            "description": "A generated answer for the query. May be an empty string when no direct answer is available."
+          },
+          "type": {
+            "type": "string",
+            "description": "Same as `results_type`. Indicates the category of results."
+          },
+          "title": {
+            "type": "string",
+            "description": "A title summarizing the search results."
+          },
           "results": {
             "type": "array",
             "description": "Array of search results.",
@@ -354,40 +383,87 @@
               "$ref": "#/components/schemas/SearchResult"
             }
           },
-          "intent": {
-            "type": "string",
-            "description": "Detected or forced search intent.",
-            "enum": ["web", "news", "videos", "images", "weather", "calculation"]
-          },
-          "query": {
-            "type": "string",
-            "description": "The query as processed by the search engine."
+          "metrics": {
+            "$ref": "#/components/schemas/Metrics",
+            "description": "Search performance metrics. Always included in the response."
           },
           "correctedQuery": {
             "type": "string",
             "description": "Spell-corrected query. Only present when deep search detects and corrects a misspelling in the original query."
           },
-          "weather": {
-            "$ref": "#/components/schemas/WeatherResult",
-            "description": "Weather data, present when the query triggers a weather intent."
+          "related_searches": {
+            "type": "array",
+            "description": "Related search suggestions. Present on some queries.",
+            "items": {
+              "type": "string"
+            }
           },
-          "calculation": {
-            "$ref": "#/components/schemas/CalculationResult",
-            "description": "Calculation result, present when the query triggers a calculation intent."
+          "topics": {
+            "type": "array",
+            "description": "Related topics. Present on some queries.",
+            "items": {
+              "type": "string"
+            }
+          },
+          "videos": {
+            "type": "array",
+            "description": "Video results. Present when the query triggers a video intent.",
+            "items": {
+              "$ref": "#/components/schemas/SearchResult"
+            }
           },
           "images": {
             "type": "array",
-            "description": "Image results, present when the query triggers an image intent.",
+            "description": "Image results. Present when the query triggers an image intent.",
             "items": {
               "$ref": "#/components/schemas/ImageResult"
             }
           },
-          "metrics": {
-            "$ref": "#/components/schemas/Metrics",
-            "description": "Search performance metrics. Only included when `metadata=true`."
+          "news": {
+            "type": "array",
+            "description": "News results. Present when the query triggers a news intent.",
+            "items": {
+              "$ref": "#/components/schemas/SearchResult"
+            }
+          },
+          "places": {
+            "type": "array",
+            "description": "Place/business results. Present for location-related queries.",
+            "items": {
+              "$ref": "#/components/schemas/SearchResult"
+            }
+          },
+          "profiles": {
+            "type": "array",
+            "description": "Profile results. Present for people-related queries.",
+            "items": {
+              "$ref": "#/components/schemas/SearchResult"
+            }
+          },
+          "socials": {
+            "type": "array",
+            "description": "Social media results. Present for social-related queries.",
+            "items": {
+              "$ref": "#/components/schemas/SearchResult"
+            }
+          },
+          "academics": {
+            "type": "array",
+            "description": "Academic results. Present for scholarly queries.",
+            "items": {
+              "$ref": "#/components/schemas/SearchResult"
+            }
+          },
+          "weather": {
+            "$ref": "#/components/schemas/WeatherResult",
+            "description": "Weather data. Present when the query triggers a weather intent."
+          },
+          "calculation": {
+            "$ref": "#/components/schemas/CalculationResult",
+            "description": "Calculation result. Present when the query triggers a calculation intent."
           }
         },
-        "required": ["results"]
+        "required": ["results_type", "answer", "type", "title", "results", "metrics"]
       },
       "SearchResult": {
         "type": "object",
@@ -396,40 +472,55 @@
             "type": "string",
             "description": "Page title."
           },
-          "url": {
+          "link": {
             "type": "string",
             "format": "uri",
             "description": "Page URL."
           },
+          "desc": {
+            "type": "string",
+            "description": "Page description or summary."
+          },
+          "source": {
+            "type": "string",
+            "description": "Domain name of the result."
+          },
+          "type": {
+            "type": "string",
+            "description": "Result type.",
+            "enum": ["website", "news", "video", "image", "place", "profile", "social", "academic", "calculation", "weather", "computation", "instant answer"]
+          },
+          "date": {
+            "type": "string",
+            "description": "Publication date of the content, when available."
+          },
+          "image": {
+            "type": "string",
+            "format": "uri",
+            "description": "Preview image URL, when available."
+          },
           "snippet": {
             "type": "string",
-            "description": "Relevant text snippet from the page."
+            "description": "Query-relevant text excerpt from the page. Distinct from `desc`, which is the general page description."
+          },
+          "answer": {
+            "type": "string",
+            "description": "Inline answer for instant answer results."
           },
           "extract": {
             "type": "string",
             "description": "Longer text extract from the page. Only included when `extracts=true`."
           },
-          "type": {
+          "contentType": {
             "type": "string",
-            "description": "Result type.",
-            "enum": ["website", "news", "video"]
+            "description": "Content type of the page. Only included when `metadata=full`."
           },
-          "publishedDate": {
-            "type": "string",
-            "format": "date-time",
-            "description": "Publication date of the content, when available."
-          },
-          "domain": {
-            "type": "string",
-            "description": "Domain name of the result."
-          },
-          "favicon": {
-            "type": "string",
-            "format": "uri",
-            "description": "URL of the site's favicon."
+          "reader": {
+            "type": "object",
+            "description": "Reader data with extracted page content. Only included when `metadata=full`."
           }
         },
-        "required": ["title", "url", "snippet"]
+        "required": ["title", "link", "desc", "source", "type"]
       },
       "ImageResult": {
         "type": "object",
@@ -438,48 +529,83 @@
             "type": "string",
             "description": "Image title or alt text."
           },
-          "url": {
+          "link": {
             "type": "string",
             "format": "uri",
             "description": "URL of the page containing the image."
           },
-          "imageUrl": {
+          "image": {
             "type": "string",
             "format": "uri",
-            "description": "Direct URL of the image."
+            "description": "Direct URL of the full-size image."
           },
-          "thumbnailUrl": {
+          "source": {
+            "type": "string",
+            "description": "Domain name of the image source."
+          },
+          "type": {
+            "type": "string",
+            "description": "Always `image`.",
+            "enum": ["image"]
+          },
+          "t": {
             "type": "string",
             "format": "uri",
-            "description": "URL of the image thumbnail."
+            "description": "Thumbnail URL."
           },
-          "width": {
-            "type": "integer",
-            "description": "Image width in pixels."
+          "w": {
+            "type": "string",
+            "description": "Image width in pixels (as a string)."
           },
-          "height": {
-            "type": "integer",
-            "description": "Image height in pixels."
+          "h": {
+            "type": "string",
+            "description": "Image height in pixels (as a string)."
           }
         },
-        "required": ["title", "url", "imageUrl"]
+        "required": ["title", "link", "image", "source", "type"]
       },
       "WeatherResult": {
         "type": "object",
         "properties": {
           "location": {
-            "type": "string",
-            "description": "Location name."
+            "type": "object",
+            "description": "Location details.",
+            "properties": {
+              "name": {
+                "type": "string",
+                "description": "Location name."
+              },
+              "country": {
+                "type": "string",
+                "description": "Country name or code."
+              },
+              "coordinates": {
+                "type": "object",
+                "properties": {
+                  "latitude": {
+                    "type": "number"
+                  },
+                  "longitude": {
+                    "type": "number"
+                  }
+                }
+              }
+            }
           },
           "temperature": {
             "type": "number",
             "description": "Current temperature."
           },
+          "feelsLike": {
+            "type": "number",
+            "description": "Feels-like temperature."
+          },
           "units": {
             "type": "string",
-            "description": "Temperature unit (F or C)."
+            "description": "Unit system: `metric` or `imperial`.",
+            "enum": ["metric", "imperial"]
           },
-          "condition": {
+          "description": {
             "type": "string",
             "description": "Weather condition description."
           },
@@ -492,33 +618,31 @@
             "description": "Wind speed."
           },
           "windDirection": {
-            "type": "string",
-            "description": "Wind direction."
+            "type": "number",
+            "description": "Wind direction in degrees."
           },
-          "forecast": {
-            "type": "array",
-            "description": "Multi-day forecast.",
-            "items": {
-              "type": "object",
-              "properties": {
-                "date": {
-                  "type": "string",
-                  "format": "date"
-                },
-                "high": {
-                  "type": "number"
-                },
-                "low": {
-                  "type": "number"
-                },
-                "condition": {
-                  "type": "string"
-                }
-              }
-            }
+          "pressure": {
+            "type": "number",
+            "description": "Atmospheric pressure."
+          },
+          "icon": {
+            "type": "string",
+            "description": "Weather icon identifier."
+          },
+          "cloudiness": {
+            "type": "number",
+            "description": "Cloud cover percentage."
+          },
+          "visibility": {
+            "type": "number",
+            "description": "Visibility distance."
+          },
+          "timestamp": {
+            "type": "string",
+            "description": "Timestamp of the weather data."
           }
         },
-        "required": ["location", "temperature", "units", "condition"]
+        "required": ["location", "temperature", "units", "description"]
       },
       "CalculationResult": {
         "type": "object",
@@ -536,19 +660,43 @@
       },
       "Metrics": {
         "type": "object",
-        "description": "Search performance metrics. Only included when `metadata=true`.",
+        "description": "Search performance metrics. Always included in the response.",
         "properties": {
-          "totalTime": {
-            "type": "number",
-            "description": "Total request time in milliseconds."
+          "query": {
+            "type": "string",
+            "description": "The query as processed."
           },
-          "searchTime": {
-            "type": "number",
-            "description": "Time spent on search execution in milliseconds."
+          "intent": {
+            "type": "string",
+            "description": "The detected or forced search intent."
           },
-          "resultCount": {
+          "timestamp": {
+            "type": "string",
+            "description": "Timestamp of the search request."
+          },
+          "duration": {
+            "type": "number",
+            "description": "Total request duration in milliseconds."
+          },
+          "queries_executed": {
             "type": "integer",
-            "description": "Total number of results found."
+            "description": "Number of search queries executed."
+          },
+          "api_requests_count": {
+            "type": "integer",
+            "description": "Number of API requests made during the search."
+          },
+          "results_returned": {
+            "type": "integer",
+            "description": "Number of results returned in this response."
+          },
+          "total_results_found": {
+            "type": "integer",
+            "description": "Total number of results found across all sources."
+          },
+          "cached": {
+            "type": "boolean",
+            "description": "Whether the response was served from cache. Only present on cache hits."
           }
         }
       },
@@ -557,7 +705,11 @@
         "properties": {
           "error": {
             "type": "string",
-            "description": "Error message describing what went wrong."
+            "description": "Error type or message."
+          },
+          "message": {
+            "type": "string",
+            "description": "Detailed error description. Present on most errors, but may be absent on some (e.g., the missing `q` parameter error)."
           }
         },
         "required": ["error"]
