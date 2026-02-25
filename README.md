@@ -25,6 +25,28 @@ mint validate        # Validate documentation builds
 mint broken-links    # Check internal links
 ```
 
+## Testing
+
+API tests verify that documented parameters, response formats, and error handling match the live API.
+
+**Prerequisites:** `jq` (`brew install jq`)
+
+**Setup:**
+
+```bash
+cp .env.example .env    # Then add your API key
+```
+
+**Run tests:**
+
+```bash
+./tests/run-tests.sh              # All suites
+./tests/run-tests.sh auth errors  # Specific suites
+./tests/run-tests.sh --list       # List available suites
+```
+
+Mintlify validation (`mint validate`, `mint broken-links`, `mint openapi-check`) runs automatically at the end if the `mint` CLI is installed.
+
 ## Publishing
 
 Changes pushed to `main` auto-deploy via the Mintlify GitHub app.

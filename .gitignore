@@ -2,6 +2,12 @@
 .DS_Store
 Thumbs.db
 
+# Environment (API keys)
+.env
+
+# Test temp files
+tests/tmp/
+
 # AI tool configs (may contain internal-only information)
 CLAUDE.md
 AGENTS.md
