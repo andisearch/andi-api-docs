@@ -1,97 +1,40 @@
 ---
-title: "Introduction"
-description: "Welcome to the new home for your documentation"
+title: Andi Search API
+description: Add web search to your applications with structured, accurate results from billions of indexed pages.
 ---
 
-## Setting up
+The Andi Search API gives your applications access to web search results scored for accuracy and relevance, drawn from an index of billions of pages. Responses are structured for direct use in AI agents, RAG pipelines, and search interfaces — with 87% accuracy in independent benchmarks.
 
-Get your documentation site up and running in minutes.
-
-<Card
-  title="Start here"
-  icon="rocket"
-  href="/quickstart"
-  horizontal
->
-  Follow our three step quickstart guide.
-</Card>
-
-## Make it yours
-
-Design a docs site that looks great and empowers your users.
-
-<Columns cols={2}>
-  <Card
-    title="Edit locally"
-    icon="pen-to-square"
-    href="/development"
-  >
-    Edit your docs locally and preview them in real time.
+<CardGroup cols={3}>
+  <Card title="Quickstart" icon="rocket" href="/getting-started/quickstart">
+    Make your first API call in minutes.
   </Card>
-  <Card
-    title="Customize your site"
-    icon="palette"
-    href="/essentials/settings"
-  >
-    Customize the design and colors of your site to match your brand.
+  <Card title="Fast search" icon="bolt" href="/search/fast-search">
+    Default mode — results in ~1 second.
   </Card>
-    <Card
-    title="Set up navigation"
-    icon="map"
-    href="/essentials/navigation"
-  >
-    Organize your docs to help users find what they need and succeed with your product.
+  <Card title="Deep search" icon="microscope" href="/search/deep-search">
+    Enhanced analysis with more sources.
   </Card>
-  <Card
-    title="API documentation"
-    icon="terminal"
-    href="/api-reference/introduction"
-  >
-    Auto-generate API documentation from OpenAPI specifications.
-  </Card>
-</Columns>
+</CardGroup>
 
-## Create beautiful pages
+## Base URL
 
-Everything you need to create world-class documentation.
+```text
+https://search-api.andisearch.com
+```
 
-<Columns cols={2}>
-  <Card
-    title="Write with MDX"
-    icon="pen-fancy"
-    href="/essentials/markdown"
-  >
-    Use MDX to style your docs pages.
-  </Card>
-  <Card
-    title="Code samples"
-    icon="code"
-    href="/essentials/code"
-  >
-    Add sample code to demonstrate how to use your product.
-  </Card>
-  <Card
-    title="Images"
-    icon="image"
-    href="/essentials/images"
-  >
-    Display images and other media.
-  </Card>
-  <Card
-    title="Reusable snippets"
-    icon="recycle"
-    href="/essentials/reusable-snippets"
-  >
-    Write once and reuse across your docs.
-  </Card>
-</Columns>
+## Authentication
 
-## Need inspiration?
+All requests require an API key passed in the `x-api-key` header. Get your key from the [API Console](https://console.andiai.com).
 
-<Card
-  title="See complete examples"
-  icon="stars"
-  href="https://mintlify.com/customers"
->
-  Browse our showcase of exceptional documentation sites.
-</Card>
+```bash
+curl "https://search-api.andisearch.com/api/v1/search?q=hello+world" \
+  -H "x-api-key: YOUR_API_KEY"
+```
+
+## What you can build
+
+- **AI agents** that retrieve current information from the web
+- **RAG applications** with real-time search grounding
+- **Research tools** that gather and synthesize web sources
+- **Search features** embedded in your own products

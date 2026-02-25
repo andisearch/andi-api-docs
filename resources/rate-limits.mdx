@@ -1,0 +1,57 @@
+---
+title: Rate limits
+description: Rate limit configuration and handling for the Andi Search API.
+---
+
+Rate limits control how many requests an API key can make within a time window. They protect the service and ensure fair usage across all consumers.
+
+## Default limits
+
+Rate limits are configurable per API key through the [API Console](https://console.andiai.com). The default limit is set when you create a key and can be adjusted based on your needs.
+
+<Info>
+Contact [support](mailto:hello+api@andiai.com) if you need higher rate limits than what's available in the console.
+</Info>
+
+## Rate limit headers
+
+Responses include headers that show your current rate limit status:
+
+| Header | Description |
+|---|---|
+| `X-RateLimit-Limit` | Maximum requests allowed in the current window |
+| `X-RateLimit-Remaining` | Requests remaining in the current window |
+| `X-RateLimit-Reset` | Unix timestamp when the window resets |
+| `Retry-After` | Seconds to wait before retrying (only on `429` responses) |
+
+## Handling 429 responses
+
+When you exceed your rate limit, the API returns a `429` status code:
+
+```json
+{
+  "error": "Rate limit exceeded. Please retry after the period indicated in the Retry-After header."
+}
+```
+
+Use the `Retry-After` header to determine when to retry:
+
+```python
+import time
+import requests
+
+response = requests.get(
+    "https://search-api.andisearch.com/api/v1/search",
+    params={"q": "test"},
+    headers={"x-api-key": "YOUR_API_KEY"}
+)
+
+if response.status_code == 429:
+    retry_after = int(response.headers.get("Retry-After", 60))
+    time.sleep(retry_after)
+    # Retry the request
+```
+
+## Monitoring usage
+
+Track your request volume and credit consumption in the [API Console](https://console.andiai.com). Per-key usage data helps you identify which applications or environments are consuming the most requests.

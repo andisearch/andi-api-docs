@@ -1,0 +1,64 @@
+---
+title: Error handling
+description: Error response format, status codes, and retry strategies for the Andi Search API.
+---
+
+When a request fails, the API returns an error response with an HTTP status code and a JSON body describing the problem.
+
+## Error response format
+
+```json
+{
+  "error": "Description of what went wrong"
+}
+```
+
+## Status codes
+
+| Code | Meaning | Description |
+|---|---|---|
+| `400` | Bad request | Missing or invalid parameters. Check the `error` message for details. |
+| `401` | Unauthorized | Missing or invalid API key. Verify your `x-api-key` header. |
+| `402` | Insufficient credits | Your account balance is depleted. [Add credits](https://console.andiai.com) to continue. |
+| `429` | Rate limit exceeded | Too many requests. Back off and retry after the period in the `Retry-After` header. |
+| `500` | Server error | Something went wrong on our end. Retry with backoff. |
+
+## Handling errors
+
+Check the HTTP status code before parsing the response body:
+
+```python
+import requests
+
+response = requests.get(
+    "https://search-api.andisearch.com/api/v1/search",
+    params={"q": "test"},
+    headers={"x-api-key": "YOUR_API_KEY"}
+)
+
+if response.status_code == 200:
+    data = response.json()
+elif response.status_code == 429:
+    retry_after = response.headers.get("Retry-After", 60)
+    print(f"Rate limited. Retry after {retry_after} seconds.")
+elif response.status_code == 402:
+    print("Out of credits. Add credits at console.andiai.com")
+else:
+    error = response.json()
+    print(f"Error {response.status_code}: {error['error']}")
+```
+
+## Retry strategy
+
+For transient errors (`429`, `500`), use exponential backoff:
+
+1. Wait 1 second after the first failure
+2. Double the wait time on each subsequent retry
+3. Cap at 60 seconds
+4. Stop after 5 retries
+
+<Warning>
+Do not retry `400`, `401`, or `402` errors — these indicate problems that won't resolve by retrying. Fix the request or account issue first.
+</Warning>
+
+For `429` responses, prefer the `Retry-After` header value over your own backoff timer if it's present.

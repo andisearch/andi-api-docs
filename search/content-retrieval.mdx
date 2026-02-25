@@ -1,0 +1,25 @@
+---
+title: Content retrieval
+description: Full HTML content retrieval from search results — coming soon.
+---
+
+<Info>
+Content retrieval is coming soon. This page will be updated when the feature is available.
+</Info>
+
+Content retrieval will allow you to fetch the full HTML content of pages returned in search results. This is useful for:
+
+- Extracting full article text for RAG pipelines
+- Building datasets from web sources
+- Deep content analysis beyond snippets
+
+## Available now
+
+While content retrieval is in development, you can use the `extracts` parameter to get longer text snippets from search results:
+
+```bash
+curl "https://search-api.andisearch.com/api/v1/search?q=your+query&extracts=true" \
+  -H "x-api-key: YOUR_API_KEY"
+```
+
+See [fast search](/search/fast-search) and [deep search](/search/deep-search) for the search modes available today.

@@ -1,216 +1,566 @@
 {
   "openapi": "3.1.0",
   "info": {
-    "title": "OpenAPI Plant Store",
-    "description": "A sample API that uses a plant store as an example to demonstrate features in the OpenAPI specification",
-    "license": {
-      "name": "MIT"
-    },
-    "version": "1.0.0"
+    "title": "Andi Search API",
+    "version": "1.0.0",
+    "description": "Web search API with fast and deep search modes. Returns structured search results from billions of indexed pages."
   },
   "servers": [
     {
-      "url": "http://sandbox.mintlify.com"
+      "url": "https://search-api.andisearch.com",
+      "description": "Production"
     }
   ],
   "security": [
     {
-      "bearerAuth": []
+      "apiKey": []
     }
   ],
   "paths": {
-    "/plants": {
+    "/api/v1/search": {
       "get": {
-        "description": "Returns all plants from the system that the user has access to",
+        "operationId": "search",
+        "summary": "Search the web",
+        "description": "Performs a web search and returns structured results. Supports fast (default) and deep search modes, domain and date filtering, query operators, and multiple output formats.",
         "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "required": true,
+            "description": "Search query string. Supports query operators when `parseOperators` is enabled.",
+            "schema": {
+              "type": "string"
+            },
+            "example": "best programming languages 2025"
+          },
           {
             "name": "limit",
             "in": "query",
-            "description": "The maximum number of results to return",
+            "description": "Maximum number of results to return.",
             "schema": {
               "type": "integer",
-              "format": "int32"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Plant response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/Plant"
-                  }
-                }
-              }
+              "default": 10,
+              "minimum": 1,
+              "maximum": 50
             }
           },
-          "400": {
-            "description": "Unexpected error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          }
-        }
-      },
-      "post": {
-        "description": "Creates a new plant in the store",
-        "requestBody": {
-          "description": "Plant to add to the store",
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/NewPlant"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "plant response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Plant"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "unexpected error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/plants/{id}": {
-      "delete": {
-        "description": "Deletes a single plant based on the ID supplied",
-        "parameters": [
           {
-            "name": "id",
-            "in": "path",
-            "description": "ID of plant to delete",
-            "required": true,
+            "name": "offset",
+            "in": "query",
+            "description": "Number of results to skip for pagination.",
             "schema": {
               "type": "integer",
-              "format": "int64"
+              "default": 0,
+              "minimum": 0
+            }
+          },
+          {
+            "name": "depth",
+            "in": "query",
+            "description": "Search depth. `fast` returns results in ~1 second. `deep` enables spell correction, enhanced analysis, and more sources in ~2–3 seconds.",
+            "schema": {
+              "type": "string",
+              "enum": ["fast", "deep"],
+              "default": "fast"
+            }
+          },
+          {
+            "name": "intent",
+            "in": "query",
+            "description": "Force a specific search intent. When not set, the API auto-detects intent from the query.",
+            "schema": {
+              "type": "string",
+              "enum": ["web", "news", "videos", "images", "weather", "calculation"]
+            }
+          },
+          {
+            "name": "format",
+            "in": "query",
+            "description": "Response format.",
+            "schema": {
+              "type": "string",
+              "enum": ["json", "jsonl"],
+              "default": "json"
+            }
+          },
+          {
+            "name": "metadata",
+            "in": "query",
+            "description": "Include metadata in the response. Set to `true` to include search metrics and debug information.",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
+          },
+          {
+            "name": "extracts",
+            "in": "query",
+            "description": "Include text extracts from result pages in the response.",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
+          },
+          {
+            "name": "safe",
+            "in": "query",
+            "description": "Safe search filtering level.",
+            "schema": {
+              "type": "string",
+              "enum": ["off", "moderate", "strict"],
+              "default": "moderate"
+            }
+          },
+          {
+            "name": "country",
+            "in": "query",
+            "description": "Two-letter ISO 3166-1 country code to localize results.",
+            "schema": {
+              "type": "string"
+            },
+            "example": "us"
+          },
+          {
+            "name": "language",
+            "in": "query",
+            "description": "Two-letter ISO 639-1 language code to filter results by language.",
+            "schema": {
+              "type": "string"
+            },
+            "example": "en"
+          },
+          {
+            "name": "units",
+            "in": "query",
+            "description": "Unit system for weather and calculation results.",
+            "schema": {
+              "type": "string",
+              "enum": ["metric", "imperial"],
+              "default": "imperial"
+            }
+          },
+          {
+            "name": "noCache",
+            "in": "query",
+            "description": "Bypass cached results and fetch fresh data.",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
+          },
+          {
+            "name": "dateRange",
+            "in": "query",
+            "description": "Relative date range filter for results.",
+            "schema": {
+              "type": "string",
+              "enum": ["day", "week", "month", "year"]
+            }
+          },
+          {
+            "name": "dateFrom",
+            "in": "query",
+            "description": "Filter results published on or after this date. Format: `YYYY-MM-DD`.",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            },
+            "example": "2025-01-01"
+          },
+          {
+            "name": "dateTo",
+            "in": "query",
+            "description": "Filter results published on or before this date. Format: `YYYY-MM-DD`.",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            },
+            "example": "2025-12-31"
+          },
+          {
+            "name": "includeDomains",
+            "in": "query",
+            "description": "Comma-separated list of domains to restrict results to. Supports wildcards (`*.example.com`).",
+            "schema": {
+              "type": "string"
+            },
+            "example": "github.com,stackoverflow.com"
+          },
+          {
+            "name": "excludeDomains",
+            "in": "query",
+            "description": "Comma-separated list of domains to exclude from results. Supports wildcards.",
+            "schema": {
+              "type": "string"
+            },
+            "example": "pinterest.com,reddit.com"
+          },
+          {
+            "name": "includeTerms",
+            "in": "query",
+            "description": "Comma-separated terms that must appear in results.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "excludeTerms",
+            "in": "query",
+            "description": "Comma-separated terms to exclude from results.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "parseOperators",
+            "in": "query",
+            "description": "Parse query operators (like `site:`, `filetype:`, `intitle:`) from the query string. When disabled, the query is treated as literal text.",
+            "schema": {
+              "type": "boolean",
+              "default": true
+            }
+          },
+          {
+            "name": "filetype",
+            "in": "query",
+            "description": "Filter results by file type.",
+            "schema": {
+              "type": "string"
+            },
+            "example": "pdf"
+          },
+          {
+            "name": "intitle",
+            "in": "query",
+            "description": "Filter results to pages with this term in the title.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "inurl",
+            "in": "query",
+            "description": "Filter results to pages with this term in the URL.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "intext",
+            "in": "query",
+            "description": "Filter results to pages with this term in the body text.",
+            "schema": {
+              "type": "string"
             }
           }
         ],
         "responses": {
-          "204": {
-            "description": "Plant deleted",
-            "content": {}
+          "200": {
+            "description": "Search results",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SearchResponse"
+                }
+              }
+            }
           },
           "400": {
-            "description": "unexpected error",
+            "description": "Bad request — missing or invalid parameters",
             "content": {
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "Missing required parameter: q"
                 }
               }
             }
-          }
-        }
-      }
-    }
-  },
-  "webhooks": {
-    "/plant/webhook": {
-      "post": {
-        "description": "Information about a new plant added to the store",
-        "requestBody": {
-          "description": "Plant added to the store",
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/NewPlant"
+          },
+          "401": {
+            "description": "Unauthorized — missing or invalid API key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "Invalid API key"
+                }
               }
             }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Return a 200 status to indicate that the data was received successfully"
+          },
+          "402": {
+            "description": "Insufficient credits — account balance depleted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "Insufficient credits. Please add credits at console.andiai.com"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "Rate limit exceeded. Please retry after the period indicated in the Retry-After header."
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "Internal server error"
+                }
+              }
+            }
           }
         }
       }
     }
   },
   "components": {
+    "securitySchemes": {
+      "apiKey": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "x-api-key",
+        "description": "API key from the [API Console](https://console.andiai.com)."
+      }
+    },
     "schemas": {
-      "Plant": {
-        "required": [
-          "name"
-        ],
+      "SearchResponse": {
         "type": "object",
         "properties": {
-          "name": {
-            "description": "The name of the plant",
-            "type": "string"
+          "results": {
+            "type": "array",
+            "description": "Array of search results.",
+            "items": {
+              "$ref": "#/components/schemas/SearchResult"
+            }
           },
-          "tag": {
-            "description": "Tag to specify the type",
-            "type": "string"
+          "intent": {
+            "type": "string",
+            "description": "Detected or forced search intent.",
+            "enum": ["web", "news", "videos", "images", "weather", "calculation"]
+          },
+          "query": {
+            "type": "string",
+            "description": "The query as processed by the search engine."
+          },
+          "correctedQuery": {
+            "type": "string",
+            "description": "Spell-corrected query. Only present when deep search detects and corrects a misspelling in the original query."
+          },
+          "weather": {
+            "$ref": "#/components/schemas/WeatherResult",
+            "description": "Weather data, present when the query triggers a weather intent."
+          },
+          "calculation": {
+            "$ref": "#/components/schemas/CalculationResult",
+            "description": "Calculation result, present when the query triggers a calculation intent."
+          },
+          "images": {
+            "type": "array",
+            "description": "Image results, present when the query triggers an image intent.",
+            "items": {
+              "$ref": "#/components/schemas/ImageResult"
+            }
+          },
+          "metrics": {
+            "$ref": "#/components/schemas/Metrics",
+            "description": "Search performance metrics. Only included when `metadata=true`."
           }
-        }
+        },
+        "required": ["results"]
       },
-      "NewPlant": {
-        "allOf": [
-          {
-            "$ref": "#/components/schemas/Plant"
+      "SearchResult": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "description": "Page title."
           },
-          {
-            "required": [
-              "id"
-            ],
-            "type": "object",
-            "properties": {
-              "id": {
-                "description": "Identification number of the plant",
-                "type": "integer",
-                "format": "int64"
+          "url": {
+            "type": "string",
+            "format": "uri",
+            "description": "Page URL."
+          },
+          "snippet": {
+            "type": "string",
+            "description": "Relevant text snippet from the page."
+          },
+          "extract": {
+            "type": "string",
+            "description": "Longer text extract from the page. Only included when `extracts=true`."
+          },
+          "type": {
+            "type": "string",
+            "description": "Result type.",
+            "enum": ["website", "news", "video"]
+          },
+          "publishedDate": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Publication date of the content, when available."
+          },
+          "domain": {
+            "type": "string",
+            "description": "Domain name of the result."
+          },
+          "favicon": {
+            "type": "string",
+            "format": "uri",
+            "description": "URL of the site's favicon."
+          }
+        },
+        "required": ["title", "url", "snippet"]
+      },
+      "ImageResult": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "description": "Image title or alt text."
+          },
+          "url": {
+            "type": "string",
+            "format": "uri",
+            "description": "URL of the page containing the image."
+          },
+          "imageUrl": {
+            "type": "string",
+            "format": "uri",
+            "description": "Direct URL of the image."
+          },
+          "thumbnailUrl": {
+            "type": "string",
+            "format": "uri",
+            "description": "URL of the image thumbnail."
+          },
+          "width": {
+            "type": "integer",
+            "description": "Image width in pixels."
+          },
+          "height": {
+            "type": "integer",
+            "description": "Image height in pixels."
+          }
+        },
+        "required": ["title", "url", "imageUrl"]
+      },
+      "WeatherResult": {
+        "type": "object",
+        "properties": {
+          "location": {
+            "type": "string",
+            "description": "Location name."
+          },
+          "temperature": {
+            "type": "number",
+            "description": "Current temperature."
+          },
+          "units": {
+            "type": "string",
+            "description": "Temperature unit (F or C)."
+          },
+          "condition": {
+            "type": "string",
+            "description": "Weather condition description."
+          },
+          "humidity": {
+            "type": "number",
+            "description": "Humidity percentage."
+          },
+          "windSpeed": {
+            "type": "number",
+            "description": "Wind speed."
+          },
+          "windDirection": {
+            "type": "string",
+            "description": "Wind direction."
+          },
+          "forecast": {
+            "type": "array",
+            "description": "Multi-day forecast.",
+            "items": {
+              "type": "object",
+              "properties": {
+                "date": {
+                  "type": "string",
+                  "format": "date"
+                },
+                "high": {
+                  "type": "number"
+                },
+                "low": {
+                  "type": "number"
+                },
+                "condition": {
+                  "type": "string"
+                }
               }
             }
           }
-        ]
+        },
+        "required": ["location", "temperature", "units", "condition"]
+      },
+      "CalculationResult": {
+        "type": "object",
+        "properties": {
+          "expression": {
+            "type": "string",
+            "description": "The mathematical expression."
+          },
+          "result": {
+            "type": "string",
+            "description": "The calculated result."
+          }
+        },
+        "required": ["expression", "result"]
+      },
+      "Metrics": {
+        "type": "object",
+        "description": "Search performance metrics. Only included when `metadata=true`.",
+        "properties": {
+          "totalTime": {
+            "type": "number",
+            "description": "Total request time in milliseconds."
+          },
+          "searchTime": {
+            "type": "number",
+            "description": "Time spent on search execution in milliseconds."
+          },
+          "resultCount": {
+            "type": "integer",
+            "description": "Total number of results found."
+          }
+        }
       },
       "Error": {
-        "required": [
-          "error",
-          "message"
-        ],
         "type": "object",
         "properties": {
           "error": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "message": {
-            "type": "string"
+            "type": "string",
+            "description": "Error message describing what went wrong."
           }
-        }
-      }
-    },
-    "securitySchemes": {
-      "bearerAuth": {
-        "type": "http",
-        "scheme": "bearer"
+        },
+        "required": ["error"]
       }
     }
   }

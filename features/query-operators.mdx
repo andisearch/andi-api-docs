@@ -1,0 +1,92 @@
+---
+title: Query operators
+description: Use in-query operators to refine search results directly in the query string.
+---
+
+Query operators let you control search behavior directly in the `q` parameter. They work when `parseOperators` is enabled (the default).
+
+## Site operators
+
+Restrict or exclude results from specific domains:
+
+| Operator | Description | Example |
+|---|---|---|
+| `site:` | Results only from this domain | `site:github.com python libraries` |
+| `-site:` | Exclude results from this domain | `machine learning -site:wikipedia.org` |
+
+```bash
+curl "https://search-api.andisearch.com/api/v1/search?q=site:github.com+python+libraries" \
+  -H "x-api-key: YOUR_API_KEY"
+```
+
+## Term operators
+
+Require or exclude specific terms:
+
+| Operator | Description | Example |
+|---|---|---|
+| `+term` | Term must appear in results | `+python web framework` |
+| `-term` | Term must not appear in results | `apple -fruit` |
+
+## Content operators
+
+Filter by where terms appear:
+
+| Operator | Description | Example |
+|---|---|---|
+| `filetype:` | Filter by file extension | `filetype:pdf machine learning` |
+| `intitle:` | Term must be in the page title | `intitle:tutorial react hooks` |
+| `inurl:` | Term must be in the URL | `inurl:api documentation` |
+| `intext:` | Term must be in the body text | `intext:benchmarks LLM performance` |
+
+```bash
+curl "https://search-api.andisearch.com/api/v1/search?q=filetype:pdf+machine+learning+survey" \
+  -H "x-api-key: YOUR_API_KEY"
+```
+
+## Date operators
+
+Filter results by publication date:
+
+| Operator | Description | Example |
+|---|---|---|
+| `after:` | Results published after this date | `after:2025-01-01 AI news` |
+| `before:` | Results published before this date | `before:2024-06-01 product launch` |
+
+Dates use `YYYY-MM-DD` format.
+
+## Logical operators
+
+| Operator | Description | Example |
+|---|---|---|
+| `OR` | Match either term | `python OR javascript web framework` |
+| `AROUND(X)` | Terms within X words of each other | `climate AROUND(3) change` |
+
+## Ranges and wildcards
+
+| Operator | Description | Example |
+|---|---|---|
+| `..` | Numeric range | `best laptops $500..$1000` |
+| `*` | Wildcard (matches any word) | `how to * in python` |
+
+## Combining operators
+
+Operators can be combined in a single query:
+
+```bash
+curl "https://search-api.andisearch.com/api/v1/search?q=site:github.com+filetype:md+intitle:readme+machine+learning+after:2025-01-01" \
+  -H "x-api-key: YOUR_API_KEY"
+```
+
+This searches GitHub for markdown README files about machine learning published after January 2025.
+
+## Disabling operator parsing
+
+If your query contains text that looks like an operator but shouldn't be treated as one, set `parseOperators=false`:
+
+```bash
+curl "https://search-api.andisearch.com/api/v1/search?q=how+to+use+site:+prefix+in+DNS&parseOperators=false" \
+  -H "x-api-key: YOUR_API_KEY"
+```
+
+When disabled, the entire query is treated as literal text.

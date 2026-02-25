@@ -1,0 +1,75 @@
+---
+title: Deep search
+description: Enhanced search mode with spell correction, more sources, and deeper analysis in ~2–3 seconds.
+---
+
+Deep search provides enhanced analysis with spell correction, broader source coverage, and more detailed results. Responses take approximately 2–3 seconds.
+
+Enable deep search by setting `depth=deep`:
+
+<CodeGroup>
+
+```bash curl
+curl "https://search-api.andisearch.com/api/v1/search?q=quantm+computing+applications&depth=deep" \
+  -H "x-api-key: YOUR_API_KEY"
+```
+
+```python Python
+import requests
+
+response = requests.get(
+    "https://search-api.andisearch.com/api/v1/search",
+    params={"q": "quantm computing applications", "depth": "deep"},
+    headers={"x-api-key": "YOUR_API_KEY"}
+)
+```
+
+```javascript JavaScript
+const response = await fetch(
+  "https://search-api.andisearch.com/api/v1/search?q=quantm+computing+applications&depth=deep",
+  { headers: { "x-api-key": "YOUR_API_KEY" } }
+);
+```
+
+</CodeGroup>
+
+<Note>
+The example query intentionally misspells "quantum" — deep search corrects it automatically.
+</Note>
+
+## What deep search adds
+
+- **Spell correction** — fixes typos and misspellings in the query
+- **Extended source coverage** — searches a broader set of sources
+- **Enhanced analysis** — applies deeper relevance scoring to results
+
+## When to use deep search
+
+- Research queries where completeness matters
+- Queries from user input that may contain typos
+- Applications that prioritize result quality over speed
+- Complex or multi-faceted topics
+
+## Example response
+
+```json
+{
+  "results": [
+    {
+      "title": "Quantum Computing: Current Applications and Future Potential",
+      "url": "https://example.com/quantum-applications",
+      "snippet": "Quantum computing is being applied in cryptography, drug discovery, and optimization problems...",
+      "type": "website",
+      "domain": "example.com"
+    }
+  ],
+  "intent": "web",
+  "query": "quantum computing applications"
+}
+```
+
+Note that the `query` field reflects the corrected spelling.
+
+## Pricing
+
+Deep search costs **$25 per 1,000 queries**. Monitor your usage in the [API Console](https://console.andiai.com).

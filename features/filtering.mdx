@@ -1,0 +1,106 @@
+---
+title: Filtering
+description: Filter search results by domain, date, and content type.
+---
+
+The API supports filtering through both query parameters and in-query operators. This page covers the parameter-based approach — see [query operators](/features/query-operators) for inline syntax.
+
+## Domain filtering
+
+Restrict results to specific domains or exclude unwanted ones.
+
+### Include domains
+
+Return results only from the specified domains:
+
+```bash
+curl "https://search-api.andisearch.com/api/v1/search?q=python+tutorials&includeDomains=docs.python.org,realpython.com" \
+  -H "x-api-key: YOUR_API_KEY"
+```
+
+### Exclude domains
+
+Remove specific domains from results:
+
+```bash
+curl "https://search-api.andisearch.com/api/v1/search?q=python+tutorials&excludeDomains=w3schools.com,pinterest.com" \
+  -H "x-api-key: YOUR_API_KEY"
+```
+
+### Wildcards
+
+Match all subdomains with `*`:
+
+```bash
+# Include all subdomains of example.com
+?includeDomains=*.example.com
+
+# Exclude all subdomains of example.com
+?excludeDomains=*.example.com
+```
+
+## Date filtering
+
+Filter results by publication date using relative ranges or absolute dates.
+
+### Relative date ranges
+
+Use `dateRange` for common time windows:
+
+```bash
+# Results from the past week
+curl "https://search-api.andisearch.com/api/v1/search?q=tech+news&dateRange=week" \
+  -H "x-api-key: YOUR_API_KEY"
+```
+
+Available values: `day`, `week`, `month`, `year`.
+
+### Absolute date ranges
+
+Use `dateFrom` and `dateTo` for specific date boundaries:
+
+```bash
+# Results from Q1 2025
+curl "https://search-api.andisearch.com/api/v1/search?q=quarterly+earnings&dateFrom=2025-01-01&dateTo=2025-03-31" \
+  -H "x-api-key: YOUR_API_KEY"
+```
+
+You can use one or both:
+- `dateFrom` alone — results from that date onward
+- `dateTo` alone — results up to that date
+- Both — results within the range
+
+## Content filtering
+
+Filter by file type or where terms appear on the page.
+
+### File type
+
+```bash
+curl "https://search-api.andisearch.com/api/v1/search?q=annual+report&filetype=pdf" \
+  -H "x-api-key: YOUR_API_KEY"
+```
+
+### Title, URL, and body text
+
+```bash
+# Term must appear in the page title
+?intitle=tutorial
+
+# Term must appear in the URL
+?inurl=api
+
+# Term must appear in the body text
+?intext=benchmarks
+```
+
+## Combined filtering
+
+Filters stack — combine them to narrow results precisely:
+
+```bash
+curl "https://search-api.andisearch.com/api/v1/search?q=machine+learning&includeDomains=arxiv.org,github.com&dateRange=month&filetype=pdf&limit=20" \
+  -H "x-api-key: YOUR_API_KEY"
+```
+
+This searches for machine learning PDFs on arxiv.org and github.com from the past month.

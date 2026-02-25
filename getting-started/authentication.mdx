@@ -1,0 +1,47 @@
+---
+title: Authentication
+description: How to authenticate with the Andi Search API using API keys.
+---
+
+Every request to the Andi Search API must include an API key in the `x-api-key` header.
+
+<Snippet file="auth-header.mdx" />
+
+## Getting an API key
+
+1. Sign in to the [API Console](https://console.andiai.com)
+2. Go to **API Keys**
+3. Click **Create Key**
+4. Copy the key — it's only shown once
+
+## Managing keys
+
+The API Console lets you:
+
+- **Create** multiple keys for different applications or environments
+- **Rename** keys to identify their purpose
+- **Enable/disable** keys without deleting them
+- **Revoke** keys that are no longer needed
+
+Each key tracks its own usage. You can monitor request counts and credit consumption per key in the console.
+
+## Security practices
+
+<Warning>
+Treat API keys like passwords. Never commit them to version control or expose them in client-side code.
+</Warning>
+
+- Store keys in environment variables or a secrets manager
+- Use separate keys for development and production
+- Rotate keys periodically
+- Revoke keys immediately if compromised
+- Restrict key access to team members who need it
+
+```bash
+# Store your key in an environment variable
+export ANDI_API_KEY="your-api-key"
+
+# Reference it in requests
+curl "https://search-api.andisearch.com/api/v1/search?q=test" \
+  -H "x-api-key: $ANDI_API_KEY"
+```

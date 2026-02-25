@@ -1,0 +1,77 @@
+---
+title: Fast search
+description: Default search mode optimized for speed, returning results in ~1 second.
+---
+
+Fast search is the default mode. It returns results in approximately 1 second, making it suitable for real-time applications and high-volume workloads.
+
+<CodeGroup>
+
+```bash curl
+curl "https://search-api.andisearch.com/api/v1/search?q=latest+AI+news" \
+  -H "x-api-key: YOUR_API_KEY"
+```
+
+```python Python
+import requests
+
+response = requests.get(
+    "https://search-api.andisearch.com/api/v1/search",
+    params={"q": "latest AI news"},
+    headers={"x-api-key": "YOUR_API_KEY"}
+)
+```
+
+```javascript JavaScript
+const response = await fetch(
+  "https://search-api.andisearch.com/api/v1/search?q=latest+AI+news",
+  { headers: { "x-api-key": "YOUR_API_KEY" } }
+);
+```
+
+</CodeGroup>
+
+Fast search is the default — no `depth` parameter is needed. Setting `depth=fast` explicitly has the same effect.
+
+## When to use fast search
+
+- Real-time search in user-facing applications
+- High-volume automated queries
+- AI agents that need quick answers
+- Applications where latency matters more than exhaustive coverage
+
+## Example response
+
+```json
+{
+  "results": [
+    {
+      "title": "Latest AI News and Developments",
+      "url": "https://example.com/ai-news",
+      "snippet": "A roundup of the latest developments in artificial intelligence...",
+      "type": "website",
+      "domain": "example.com"
+    }
+  ],
+  "intent": "news",
+  "query": "latest AI news"
+}
+```
+
+## Fast search vs. deep search
+
+| | Fast search | Deep search |
+|---|---|---|
+| Response time | ~1 second | ~2–3 seconds |
+| Spell correction | No | Yes |
+| Source coverage | Standard | Extended |
+| Analysis depth | Standard | Enhanced |
+| Pricing | $7 per 1,000 queries | $25 per 1,000 queries |
+
+<Tip>
+Start with fast search. Switch to deep search only when you need spell correction, broader coverage, or enhanced analysis.
+</Tip>
+
+## Pricing
+
+Fast search costs **$7 per 1,000 queries**. Monitor your usage in the [API Console](https://console.andiai.com).

@@ -1,0 +1,150 @@
+---
+title: Response format
+description: Structure of the Andi Search API response, including result types and instant answers.
+---
+
+All responses are JSON objects with a `results` array and metadata about the search.
+
+## Top-level fields
+
+| Field | Type | Description |
+|---|---|---|
+| `results` | array | Search results (always present) |
+| `intent` | string | Detected search intent |
+| `query` | string | Query as processed (may differ from input after spell correction) |
+| `correctedQuery` | string | Spell-corrected query (only present when deep search corrects a misspelling) |
+| `weather` | object | Weather data (when intent is `weather`) |
+| `calculation` | object | Calculation result (when intent is `calculation`) |
+| `images` | array | Image results (when intent is `images`) |
+| `metrics` | object | Performance metrics (when `metadata=true`) |
+
+## Search results
+
+Each result in the `results` array has this structure:
+
+| Field | Type | Always present | Description |
+|---|---|---|---|
+| `title` | string | Yes | Page title |
+| `url` | string | Yes | Page URL |
+| `snippet` | string | Yes | Relevant text excerpt |
+| `extract` | string | No | Longer text extract (when `extracts=true`) |
+| `type` | string | No | Result type: `website`, `news`, `video` |
+| `publishedDate` | string | No | Publication date (ISO 8601) |
+| `domain` | string | No | Domain name |
+| `favicon` | string | No | Favicon URL |
+
+## Result types
+
+The `type` field indicates the kind of result:
+
+- **`website`** — Standard web page result
+- **`news`** — News article with publication date
+- **`video`** — Video content
+
+The result type is determined by the content and the detected intent. A query for "latest news about AI" will return results with `type: "news"`.
+
+## Instant answers
+
+Some queries trigger instant answers alongside regular results.
+
+### Weather
+
+Queries about weather return a `weather` object:
+
+```json
+{
+  "results": [...],
+  "intent": "weather",
+  "weather": {
+    "location": "San Francisco, CA",
+    "temperature": 62,
+    "units": "F",
+    "condition": "Partly Cloudy",
+    "humidity": 72,
+    "windSpeed": 12,
+    "windDirection": "W",
+    "forecast": [
+      {
+        "date": "2025-03-15",
+        "high": 65,
+        "low": 52,
+        "condition": "Sunny"
+      }
+    ]
+  }
+}
+```
+
+Use the `units` parameter to get results in metric (`C`, km/h) or imperial (`F`, mph).
+
+### Calculation
+
+Mathematical queries return a `calculation` object:
+
+```json
+{
+  "results": [...],
+  "intent": "calculation",
+  "calculation": {
+    "expression": "150 * 1.08",
+    "result": "162"
+  }
+}
+```
+
+### Images
+
+Image queries return an `images` array:
+
+```json
+{
+  "results": [...],
+  "intent": "images",
+  "images": [
+    {
+      "title": "Mountain landscape",
+      "url": "https://example.com/photo",
+      "imageUrl": "https://example.com/photo.jpg",
+      "thumbnailUrl": "https://example.com/photo_thumb.jpg",
+      "width": 1920,
+      "height": 1080
+    }
+  ]
+}
+```
+
+## Search intents
+
+The `intent` field reflects what kind of search was performed:
+
+| Intent | Triggered by | Extra fields |
+|---|---|---|
+| `web` | General queries | — |
+| `news` | News-related queries | — |
+| `videos` | Video-related queries | — |
+| `images` | Image-related queries | `images` |
+| `weather` | Weather queries | `weather` |
+| `calculation` | Math expressions | `calculation` |
+
+You can force an intent with the `intent` parameter, or let the API auto-detect it.
+
+## Metrics
+
+When `metadata=true`, the response includes a `metrics` object:
+
+```json
+{
+  "results": [...],
+  "metrics": {
+    "totalTime": 234,
+    "searchTime": 189,
+    "resultCount": 42
+  }
+}
+```
+
+| Field | Type | Description |
+|---|---|---|
+| `totalTime` | number | Total request time in milliseconds |
+| `searchTime` | number | Search execution time in milliseconds |
+| `resultCount` | number | Total results found |

@@ -1,0 +1,94 @@
+---
+title: Quickstart
+description: Make your first Andi Search API call in minutes.
+---
+
+<Info>You need an API key to follow this guide. Get one from the [API Console](https://console.andiai.com).</Info>
+
+<Steps>
+
+<Step title="Get your API key">
+
+Sign in to the [API Console](https://console.andiai.com) and create an API key. Copy it — you'll need it for the next step.
+
+</Step>
+
+<Step title="Make your first request">
+
+Send a search query using the `x-api-key` header:
+
+<CodeGroup>
+
+```bash curl
+curl "https://search-api.andisearch.com/api/v1/search?q=what+is+RAG" \
+  -H "x-api-key: YOUR_API_KEY"
+```
+
+```python Python
+import requests
+
+response = requests.get(
+    "https://search-api.andisearch.com/api/v1/search",
+    params={"q": "what is RAG"},
+    headers={"x-api-key": "YOUR_API_KEY"}
+)
+
+data = response.json()
+for result in data["results"]:
+    print(result["title"], result["url"])
+```
+
+```javascript JavaScript
+const response = await fetch(
+  "https://search-api.andisearch.com/api/v1/search?q=what+is+RAG",
+  { headers: { "x-api-key": "YOUR_API_KEY" } }
+);
+
+const data = await response.json();
+data.results.forEach(r => console.log(r.title, r.url));
+```
+
+</CodeGroup>
+
+</Step>
+
+<Step title="Read the response">
+
+The API returns a JSON object with a `results` array. Each result includes a `title`, `url`, and `snippet`:
+
+```json
+{
+  "results": [
+    {
+      "title": "Retrieval-Augmented Generation (RAG) Explained",
+      "url": "https://example.com/rag-explained",
+      "snippet": "RAG combines a retrieval system with a language model to generate responses grounded in retrieved documents.",
+      "type": "website",
+      "domain": "example.com"
+    }
+  ],
+  "intent": "web",
+  "query": "what is RAG"
+}
+```
+
+</Step>
+
+</Steps>
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Fast search" icon="bolt" href="/search/fast-search">
+    Default search mode for real-time applications.
+  </Card>
+  <Card title="Deep search" icon="microscope" href="/search/deep-search">
+    Enhanced search with spell correction and more sources.
+  </Card>
+  <Card title="Query parameters" icon="sliders" href="/features/query-parameters">
+    Full parameter reference for the search endpoint.
+  </Card>
+  <Card title="Authentication" icon="key" href="/getting-started/authentication">
+    API key management and security practices.
+  </Card>
+</CardGroup>

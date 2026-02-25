@@ -1,0 +1,24 @@
+# OS files
+.DS_Store
+Thumbs.db
+
+# AI tool configs (may contain internal-only information)
+CLAUDE.md
+AGENTS.md
+.claude/
+.agent/
+.agents/
+.cline/
+.windsurf/
+.cursor/
+skills-lock.json
+
+# Dependencies
+node_modules/
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~

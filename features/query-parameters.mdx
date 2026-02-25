@@ -1,0 +1,103 @@
+---
+title: Query parameters
+description: Complete reference for all Andi Search API query parameters.
+---
+
+All parameters are passed as query string parameters on the `GET /api/v1/search` endpoint.
+
+## Core parameters
+
+| Parameter | Type | Default | Description |
+|---|---|---|---|
+| `q` | string | **required** | Search query string |
+| `limit` | integer | `10` | Maximum results to return (1–50) |
+| `offset` | integer | `0` | Results to skip for pagination |
+| `depth` | string | `fast` | Search mode: `fast` or `deep` |
+| `intent` | string | auto | Force search intent: `web`, `news`, `videos`, `images`, `weather`, `calculation` |
+
+## Output parameters
+
+| Parameter | Type | Default | Description |
+|---|---|---|---|
+| `format` | string | `json` | Response format: `json` or `jsonl` |
+| `metadata` | boolean | `false` | Include search metrics in the response |
+| `extracts` | boolean | `false` | Include longer text extracts from result pages |
+
+## Filtering parameters
+
+| Parameter | Type | Default | Description |
+|---|---|---|---|
+| `safe` | string | `moderate` | Safe search level: `off`, `moderate`, `strict` |
+| `country` | string | — | ISO 3166-1 country code (e.g., `us`, `gb`, `de`) |
+| `language` | string | — | ISO 639-1 language code (e.g., `en`, `es`, `fr`) |
+| `units` | string | `imperial` | Unit system for weather/calculations: `metric`, `imperial` |
+
+## Date filtering
+
+| Parameter | Type | Description |
+|---|---|---|
+| `dateRange` | string | Relative range: `day`, `week`, `month`, `year` |
+| `dateFrom` | date | Results published on or after this date (`YYYY-MM-DD`) |
+| `dateTo` | date | Results published on or before this date (`YYYY-MM-DD`) |
+
+Use either `dateRange` for relative filtering or `dateFrom`/`dateTo` for absolute date ranges. See [filtering](/features/filtering) for details.
+
+## Domain filtering
+
+| Parameter | Type | Description |
+|---|---|---|
+| `includeDomains` | string | Comma-separated domains to restrict results to |
+| `excludeDomains` | string | Comma-separated domains to exclude from results |
+
+Both support wildcards: `*.example.com` matches all subdomains. See [filtering](/features/filtering) for details.
+
+## Term filtering
+
+| Parameter | Type | Description |
+|---|---|---|
+| `includeTerms` | string | Comma-separated terms that must appear in results |
+| `excludeTerms` | string | Comma-separated terms to exclude from results |
+
+## Content filtering
+
+| Parameter | Type | Description |
+|---|---|---|
+| `filetype` | string | File extension to filter by (e.g., `pdf`, `doc`) |
+| `intitle` | string | Term that must appear in the page title |
+| `inurl` | string | Term that must appear in the page URL |
+| `intext` | string | Term that must appear in the page body |
+
+## Behavior parameters
+
+| Parameter | Type | Default | Description |
+|---|---|---|---|
+| `noCache` | boolean | `false` | Bypass cached results |
+| `parseOperators` | boolean | `true` | Parse [query operators](/features/query-operators) from the query string |
+
+## Examples
+
+### Paginated search
+
+```bash
+# First page
+curl "https://search-api.andisearch.com/api/v1/search?q=machine+learning&limit=10" \
+  -H "x-api-key: YOUR_API_KEY"
+
+# Second page
+curl "https://search-api.andisearch.com/api/v1/search?q=machine+learning&limit=10&offset=10" \
+  -H "x-api-key: YOUR_API_KEY"
+```
+
+### Deep search with extracts
+
+```bash
+curl "https://search-api.andisearch.com/api/v1/search?q=climate+change+effects&depth=deep&extracts=true" \
+  -H "x-api-key: YOUR_API_KEY"
+```
+
+### Filtered by date and domain
+
+```bash
+curl "https://search-api.andisearch.com/api/v1/search?q=product+launch&dateRange=month&includeDomains=techcrunch.com,theverge.com" \
+  -H "x-api-key: YOUR_API_KEY"
+```
