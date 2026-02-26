@@ -148,5 +148,10 @@
             }
         }
     },
-    "integrations": {}
+    "integrations": {
+        "posthog": {
+            "apiKey": "phc_afElmpLLyofAdfYVvGJJYmSShyMjX8uMOHtGaaKolOe",
+            "sessionRecording": true
+        }
+    }
 }

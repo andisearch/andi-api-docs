@@ -53,7 +53,7 @@ Mintlify validation (`mint validate`, `mint broken-links`, `mint openapi-check`)
 - **Metatags**: `docs.json` → `seo.metatags` sets `og:site_name` and `twitter:site`.
 - **Organization JSON-LD**: `organization-schema.js` — injected on every page via Mintlify custom scripts. Links docs.andiai.com into the Andi entity graph.
 - **Robots**: `robots.txt` — overrides Mintlify default. Explicitly allows AI crawlers (GPTBot, ClaudeBot, PerplexityBot).
-- **Analytics**: `posthog-analytics.js` — loads PostHog via custom script (the Mintlify `integrations.posthog` config doesn't work on the deployed site).
+- **Analytics**: PostHog via `docs.json` → `integrations.posthog`.
 
 Per-page SEO in frontmatter:
 - `keywords`: YAML array for Mintlify internal search
