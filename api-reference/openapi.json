@@ -1,7 +1,7 @@
 {
   "openapi": "3.1.0",
   "info": {
-    "title": "Andi Search API",
+    "title": "Andi AI Search API",
     "version": "1.0.0",
     "description": "Web search API with fast and deep search modes. Returns structured search results from billions of indexed pages."
   },

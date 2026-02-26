@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Test runner for Andi Search API documentation tests
+# Test runner for Andi AI Search API documentation tests
 #
 # Usage:
 #   ./tests/run-tests.sh              # Run all suites (72 API calls)
@@ -87,9 +87,9 @@ trap teardown EXIT
 
 echo ""
 if [[ "$QUICK_MODE" == "true" ]]; then
-  echo -e "${BOLD}Andi Search API — Quick Tests${NC}"
+  echo -e "${BOLD}Andi AI Search API — Quick Tests${NC}"
 else
-  echo -e "${BOLD}Andi Search API — Test Suite${NC}"
+  echo -e "${BOLD}Andi AI Search API — Test Suite${NC}"
 fi
 echo "Running ${#SUITES[@]} suite(s): ${SUITES[*]}"
 

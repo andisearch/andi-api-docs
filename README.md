@@ -1,6 +1,6 @@
-# Andi Search API Documentation
+# Andi AI Search API Documentation
 
-Documentation site for the Andi Search API, built on [Mintlify](https://mintlify.com) and hosted at [docs.andiai.com](https://docs.andiai.com).
+Documentation site for the Andi AI Search API, built on [Mintlify](https://mintlify.com) and hosted at [docs.andiai.com](https://docs.andiai.com).
 
 ## Development
 
