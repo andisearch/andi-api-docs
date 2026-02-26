@@ -23,15 +23,15 @@ run_output_format_tests() {
   assert_status "200" "metadata=full returns 200"
   assert_json_field ".metrics" "full metadata has metrics"
 
-  # extracts=true — results should have extract field
+  # extracts=true — results should have extracts array
   api_get "q=test&extracts=true"
   assert_status "200" "extracts=true returns 200"
-  # Check if at least some results have extracts
+  # Check if at least some results have extracts array
   local with_extracts
-  with_extracts=$(jq '[.results[] | select(.extract != null)] | length' "$RESPONSE_FILE" 2>/dev/null || echo "0")
+  with_extracts=$(jq '[.results[] | select(.extracts != null and (.extracts | type) == "array")] | length' "$RESPONSE_FILE" 2>/dev/null || echo "0")
   if [[ "$with_extracts" -gt 0 ]]; then
-    pass "some results have extract field"
+    pass "some results have extracts array"
   else
-    skip "extract field presence" "no results have extract field (may depend on query)"
+    skip "extracts array presence" "no results have extracts array (may depend on query)"
   fi
 }

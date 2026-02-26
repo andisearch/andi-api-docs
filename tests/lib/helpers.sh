@@ -4,7 +4,7 @@
 set -euo pipefail
 
 # --- Config ---
-API_BASE="${ANDI_API_BASE:-https://search-api.andisearch.com}"
+# API_BASE is set in setup() after loading .env
 API_ENDPOINT="/api/v1/search"
 RATE_LIMIT_DELAY=0.5
 
@@ -48,6 +48,9 @@ setup() {
     echo -e "${RED}Error: ANDI_API_KEY not set. Copy .env.example to .env and add your key.${NC}" >&2
     exit 1
   fi
+
+  # Set API base after .env is loaded
+  API_BASE="${ANDI_API_BASE:-https://search-api.andisearch.com}"
 
   # Create temp file for response bodies
   RESPONSE_FILE=$(mktemp)

@@ -48,7 +48,7 @@ Each result in the `results` array has this structure:
 | `image` | string | No | Preview image URL |
 | `snippet` | string | No | Query-relevant text excerpt (distinct from `desc`) |
 | `answer` | string | No | Inline answer for instant answer results |
-| `extract` | string | No | Longer text extract (when `extracts=true`) |
+| `extracts` | array | No | Text extracts from the page, when available (when `extracts=true`) |
 | `contentType` | string | No | Content type (when `metadata=full`) |
 | `reader` | object | No | Extracted page content (when `metadata=full`) |
 

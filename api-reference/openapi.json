@@ -507,9 +507,12 @@
             "type": "string",
             "description": "Inline answer for instant answer results."
           },
-          "extract": {
-            "type": "string",
-            "description": "Longer text extract from the page. Only included when `extracts=true`."
+          "extracts": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Text extracts from the page, when available. Only included when `extracts=true`."
           },
           "contentType": {
             "type": "string",
