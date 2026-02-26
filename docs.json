@@ -124,9 +124,12 @@
     "seo": {
         "metatags": {
             "og:site_name": "Andi AI Search API Docs",
-            "og:image": "https://docs.andiai.com/images/og-default.png",
             "twitter:site": "@andi_search"
         }
+    },
+    "thumbnails": {
+        "appearance": "dark",
+        "background": "/images/og-default.png"
     },
     "api": {
         "playground": {
@@ -145,10 +148,5 @@
             }
         }
     },
-    "integrations": {
-        "posthog": {
-            "apiKey": "phc_afElmpLLyofAdfYVvGJJYmSShyMjX8uMOHtGaaKolOe",
-            "sessionRecording": true
-        }
-    }
+    "integrations": {}
 }
