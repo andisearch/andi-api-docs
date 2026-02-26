@@ -160,16 +160,16 @@ Image queries return an `images` array:
       "image": "https://example.com/photo.jpg",
       "source": "example.com",
       "type": "image",
-      "t": "https://example.com/photo_thumb.jpg",
-      "w": "1920",
-      "h": "1080"
+      "thumbnail": "https://example.com/photo_thumb.jpg",
+      "width": "1920",
+      "height": "1080"
     }
   ],
   "metrics": { ... }
 }
 ```
 
-Image results use abbreviated field names for dimensions: `t` (thumbnail URL), `w` (width as string), `h` (height as string).
+Image results include `thumbnail` (thumbnail URL), `width`, and `height` as string values.
 
 ## Search intents
 

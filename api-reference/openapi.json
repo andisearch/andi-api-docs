@@ -40,7 +40,8 @@
             "schema": {
               "type": "integer",
               "default": 10,
-              "minimum": 1
+              "minimum": 1,
+              "maximum": 100
             }
           },
           {
@@ -114,10 +115,11 @@
           {
             "name": "safe",
             "in": "query",
-            "description": "Enable safe search filtering. Pass `true` to filter explicit content.",
+            "description": "Safe search filtering level. `off` disables filtering, `moderate` filters most explicit content, `strict` applies maximum filtering.",
             "schema": {
-              "type": "boolean",
-              "default": false
+              "type": "string",
+              "enum": ["off", "moderate", "strict"],
+              "default": "off"
             }
           },
           {
@@ -283,7 +285,8 @@
                   "$ref": "#/components/schemas/Error"
                 },
                 "example": {
-                  "error": "Missing required parameter: q"
+                  "error": "Missing required parameter: q",
+                  "message": "The q parameter is required"
                 }
               }
             }
@@ -338,7 +341,8 @@
                   "$ref": "#/components/schemas/Error"
                 },
                 "example": {
-                  "error": "Internal server error"
+                  "error": "Internal server error",
+                  "message": "Unknown error"
                 }
               }
             }
@@ -551,16 +555,16 @@
             "description": "Always `image`.",
             "enum": ["image"]
           },
-          "t": {
+          "thumbnail": {
             "type": "string",
             "format": "uri",
             "description": "Thumbnail URL."
           },
-          "w": {
+          "width": {
             "type": "string",
             "description": "Image width in pixels (as a string)."
           },
-          "h": {
+          "height": {
             "type": "string",
             "description": "Image height in pixels (as a string)."
           }
@@ -712,10 +716,10 @@
           },
           "message": {
             "type": "string",
-            "description": "Detailed error description. Present on most errors, but may be absent on some (e.g., the missing `q` parameter error)."
+            "description": "Detailed error description."
           }
         },
-        "required": ["error"]
+        "required": ["error", "message"]
       }
     }
   }

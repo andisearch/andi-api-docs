@@ -2,7 +2,8 @@
 # Test runner for Andi Search API documentation tests
 #
 # Usage:
-#   ./tests/run-tests.sh              # Run all suites
+#   ./tests/run-tests.sh              # Run all suites (72 API calls)
+#   ./tests/run-tests.sh --quick      # Run core suites only (17 API calls)
 #   ./tests/run-tests.sh auth errors  # Run specific suites
 #   ./tests/run-tests.sh --list       # List available suites
 
@@ -34,17 +35,35 @@ ALL_SUITES=(
   pagination
 )
 
+# Core suites for quick smoke tests (auth, basic search, params, errors, response)
+QUICK_SUITES=(
+  auth
+  basic
+  core-params
+  errors
+  response
+)
+
 # --- List mode ---
 if [[ "${1:-}" == "--list" ]]; then
   echo "Available test suites:"
   for suite in "${ALL_SUITES[@]}"; do
-    echo "  $suite"
+    local_marker=""
+    for qs in "${QUICK_SUITES[@]}"; do
+      if [[ "$suite" == "$qs" ]]; then local_marker=" (quick)"; break; fi
+    done
+    echo "  $suite$local_marker"
   done
   exit 0
 fi
 
 # --- Determine which suites to run ---
-if [[ $# -gt 0 ]]; then
+QUICK_MODE=false
+if [[ "${1:-}" == "--quick" ]]; then
+  QUICK_MODE=true
+  SUITES=("${QUICK_SUITES[@]}")
+  shift
+elif [[ $# -gt 0 ]]; then
   SUITES=("$@")
   # Validate suite names
   for suite in "${SUITES[@]}"; do
@@ -57,6 +76,7 @@ if [[ $# -gt 0 ]]; then
 else
   SUITES=("${ALL_SUITES[@]}")
 fi
+export QUICK_MODE
 
 # --- Load helpers and initialize ---
 # shellcheck disable=SC1090
@@ -66,7 +86,11 @@ setup
 trap teardown EXIT
 
 echo ""
-echo -e "${BOLD}Andi Search API — Test Suite${NC}"
+if [[ "$QUICK_MODE" == "true" ]]; then
+  echo -e "${BOLD}Andi Search API — Quick Tests${NC}"
+else
+  echo -e "${BOLD}Andi Search API — Test Suite${NC}"
+fi
 echo "Running ${#SUITES[@]} suite(s): ${SUITES[*]}"
 
 # --- Run suites ---

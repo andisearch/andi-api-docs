@@ -7,7 +7,7 @@ When a request fails, the API returns an error response with an HTTP status code
 
 ## Error response format
 
-Most errors return both an `error` field and a `message` field:
+All errors return both an `error` field and a `message` field:
 
 ```json
 {
@@ -16,24 +16,15 @@ Most errors return both an `error` field and a `message` field:
 }
 ```
 
-<Note>
-The missing `q` parameter error returns only the `error` field with no `message`:
-```json
-{
-  "error": "Missing required parameter: q"
-}
-```
-</Note>
-
 ## Status codes
 
 | Code | Error | Message | Description |
 |---|---|---|---|
 | `400` | Varies | Varies | Missing or invalid parameters. Check the `error` field for details. |
-| `401` | `Unauthorized` | `Invalid API key` | Missing or invalid API key. Verify your `x-api-key` header. |
+| `401` | `Unauthorized` | `Missing x-api-key header` or `Invalid API key` | Missing or invalid API key. Verify your `x-api-key` header. |
 | `402` | `Insufficient Credits` | `Your account has insufficient credits. Please add credits to continue.` | Account balance depleted. [Add credits](https://console.andiai.com) to continue. |
 | `429` | `Too Many Requests` | `Rate limit of N requests per second exceeded` | Too many requests. Back off and retry after the period in the `Retry-After` header. |
-| `500` | `Internal server error` | — | Something went wrong on our end. Retry with backoff. |
+| `500` | `Internal server error` | Varies | Something went wrong on our end. Retry with backoff. |
 
 ## Handling errors
 

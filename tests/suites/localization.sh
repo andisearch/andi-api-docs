@@ -23,9 +23,15 @@ run_localization_tests() {
   api_get "q=news&language=es"
   assert_status "200" "language=es returns 200"
 
-  # safe search
-  api_get "q=test&safe=true"
-  assert_status "200" "safe=true returns 200"
+  # safe search levels
+  api_get "q=test&safe=off"
+  assert_status "200" "safe=off returns 200"
+
+  api_get "q=test&safe=moderate"
+  assert_status "200" "safe=moderate returns 200"
+
+  api_get "q=test&safe=strict"
+  assert_status "200" "safe=strict returns 200"
 
   # units=metric (weather query to verify units field)
   api_get "q=weather+london&intent=weather&units=metric"

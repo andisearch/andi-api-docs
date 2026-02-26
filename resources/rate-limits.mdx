@@ -15,11 +15,14 @@ Contact [support](mailto:hello+api@andiai.com) if you need higher rate limits th
 
 ## Rate limit headers
 
-When a rate limit is exceeded, the API returns a `429` status code with a `Retry-After` header:
+The API includes rate limit headers on every response:
 
 | Header | Description |
 |---|---|
-| `Retry-After` | Seconds to wait before retrying (set to `1` on `429` responses) |
+| `X-RateLimit-Limit` | Maximum requests allowed per second |
+| `X-RateLimit-Remaining` | Requests remaining in the current window |
+| `X-RateLimit-Reset` | Unix timestamp (seconds) when the window resets |
+| `Retry-After` | Seconds to wait before retrying (only on `429` responses) |
 
 ## Handling 429 responses
 
@@ -32,7 +35,7 @@ When you exceed your rate limit, the API returns a `429` status code:
 }
 ```
 
-Use the `Retry-After` header to determine when to retry:
+Use the rate limit headers to monitor usage and the `Retry-After` header to pace retries:
 
 ```python
 import time
@@ -44,6 +47,9 @@ response = requests.get(
     headers={"x-api-key": "YOUR_API_KEY"}
 )
 
+# Check remaining quota on any response
+remaining = int(response.headers.get("X-RateLimit-Remaining", 0))
+
 if response.status_code == 429:
     retry_after = int(response.headers.get("Retry-After", 1))
     time.sleep(retry_after)
@@ -52,4 +58,4 @@ if response.status_code == 429:
 
 ## Monitoring usage
 
-Track your request volume and credit consumption in the [API Console](https://console.andiai.com). Per-key usage data helps you identify which applications or environments are consuming the most requests.
+Use the `X-RateLimit-Remaining` header to track how close you are to your limit in real time. For aggregate usage and credit consumption, see the [API Console](https://console.andiai.com).

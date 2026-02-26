@@ -10,7 +10,7 @@ All parameters are passed as query string parameters on the `GET /api/v1/search`
 | Parameter | Type | Default | Description |
 |---|---|---|---|
 | `q` | string | **required** | Search query string. Also accepts a JSON array of up to 5 queries (e.g., `["query one", "query two"]`). |
-| `limit` | integer | `10` | Maximum results to return (minimum 1) |
+| `limit` | integer | `10` | Maximum results to return (1–100) |
 | `offset` | integer | `0` | Results to skip for pagination |
 | `depth` | string | `fast` | Search mode: `fast` or `deep` |
 | `intent` | string | auto | Force search intent. See [intent values](#intent-values) below. |
@@ -43,7 +43,7 @@ The API also accepts full intent names (e.g., `FallbackSearchIntent`, `VideoSear
 
 | Parameter | Type | Default | Description |
 |---|---|---|---|
-| `safe` | boolean | `false` | Enable safe search filtering. Pass `true` to filter explicit content. |
+| `safe` | string | `off` | Safe search level: `off`, `moderate`, or `strict` |
 | `country` | string | `US` | ISO 3166-1 country code (e.g., `US`, `GB`, `DE`) |
 | `language` | string | `en` | ISO 639-1 language code (e.g., `en`, `es`, `fr`) |
 | `units` | string | auto | Unit system for weather/calculations: `metric`, `imperial`. Defaults based on `country` — `imperial` for `US`, `metric` for all others. |

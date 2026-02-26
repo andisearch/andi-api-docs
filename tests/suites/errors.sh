@@ -32,7 +32,7 @@ run_errors_tests() {
     skip "invalid format returns 400" "API returned $HTTP_STATUS (ignores invalid enum values)"
   fi
 
-  # Error response structure — should have at least an error field
+  # Error response structure — should have both error and message fields
   api_get ""
   local has_error
   has_error=$(jq -e '.error' "$RESPONSE_FILE" &>/dev/null && echo "yes" || echo "no")
@@ -41,5 +41,14 @@ run_errors_tests() {
     assert_json_type ".error" "string" "error field is a string"
   else
     fail "error response has error field" "error field missing from 400 response"
+  fi
+
+  local has_message
+  has_message=$(jq -e '.message' "$RESPONSE_FILE" &>/dev/null && echo "yes" || echo "no")
+  if [[ "$has_message" == "yes" ]]; then
+    pass "error response has message field"
+    assert_json_type ".message" "string" "message field is a string"
+  else
+    fail "error response has message field" "message field missing from 400 response"
   fi
 }
