@@ -1,7 +1,7 @@
 {
   "$schema": "https://mintlify.com/docs.json",
   "theme": "mint",
-  "name": "Andi API Docs",
+  "name": "Andi AI Search API Docs",
   "colors": {
     "primary": "#3B75FA",
     "light": "#4A9FFF",
@@ -121,6 +121,13 @@
       "linkedin": "https://linkedin.com/company/andisearch",
       "github": "https://github.com/andisearch",
       "discord": "https://discord.gg/J2NJ2rj7ax"
+    }
+  },
+  "seo": {
+    "metatags": {
+      "og:site_name": "Andi AI Search API Docs",
+      "og:image": "https://docs.andiai.com/images/og-default.png",
+      "twitter:site": "@andi_search"
     }
   },
   "api": {

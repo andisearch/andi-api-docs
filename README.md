@@ -47,6 +47,19 @@ cp .env.example .env    # Then add your API key
 
 Mintlify validation (`mint validate`, `mint broken-links`, `mint openapi-check`) runs automatically at the end if the `mint` CLI is installed.
 
+## SEO
+
+Site-level SEO is configured in `docs.json` → `seo.metatags` (OG image, twitter:site, og:site_name).
+
+- **OG image**: `images/og-default.png` — dark branded background. Mintlify overlays logo, title, and description automatically.
+- **Organization JSON-LD**: `organization-schema.js` — injected on every page via Mintlify custom scripts. Links docs.andiai.com into the Andi entity graph.
+- **Robots**: `robots.txt` — overrides Mintlify default. Explicitly allows AI crawlers (GPTBot, ClaudeBot, PerplexityBot).
+
+Per-page SEO in frontmatter:
+- `keywords`: YAML array for Mintlify internal search
+- `noindex: true`: Prevent indexing (for stub pages)
+- `"og:image"`: Override the default OG image for a specific page
+
 ## Publishing
 
 Changes pushed to `main` auto-deploy via the Mintlify GitHub app.
