@@ -45,7 +45,8 @@
                         "group": "Resources",
                         "pages": [
                             "resources/error-handling",
-                            "resources/rate-limits"
+                            "resources/rate-limits",
+                            "resources/ai-agents"
                         ]
                     }
                 ]

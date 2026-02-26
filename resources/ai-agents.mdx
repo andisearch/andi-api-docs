@@ -1,0 +1,103 @@
+---
+title: Build with AI agents
+description: Connect AI agents to the Andi docs via MCP, llms.txt, and markdown content negotiation. Optimized for Claude Code, Cursor, VS Code, and other AI tools.
+keywords:
+  - MCP server
+  - llms.txt
+  - AI agents
+  - markdown content negotiation
+  - Claude Code
+  - Cursor
+  - VS Code
+---
+
+This documentation site is built for AI agents. Every page is available as clean markdown, and the site exposes an MCP server and llms.txt for programmatic discovery.
+
+## MCP server
+
+The docs site runs a [Model Context Protocol](https://modelcontextprotocol.io/) server that lets AI tools search and read documentation directly.
+
+**Server URL:** `https://docs.andiai.com/mcp`
+
+### Claude Code
+
+```bash
+claude mcp add andi-docs --transport streamable-http https://docs.andiai.com/mcp
+```
+
+### Claude web and desktop
+
+Add this to your MCP server settings:
+
+```json
+{
+  "mcpServers": {
+    "andi-docs": {
+      "url": "https://docs.andiai.com/mcp"
+    }
+  }
+}
+```
+
+### Cursor
+
+Add to your `.cursor/mcp.json`:
+
+```json
+{
+  "mcpServers": {
+    "andi-docs": {
+      "url": "https://docs.andiai.com/mcp"
+    }
+  }
+}
+```
+
+### VS Code
+
+Add to your VS Code settings (JSON):
+
+```json
+{
+  "mcp": {
+    "servers": {
+      "andi-docs": {
+        "type": "http",
+        "url": "https://docs.andiai.com/mcp"
+      }
+    }
+  }
+}
+```
+
+## llms.txt
+
+The site publishes [llms.txt](https://llmstxt.org/) files that list all documentation pages with direct markdown URLs.
+
+| File | Contents |
+|---|---|
+| [`/llms.txt`](https://docs.andiai.com/llms.txt) | Page titles and descriptions with markdown links |
+| [`/llms-full.txt`](https://docs.andiai.com/llms-full.txt) | Full page content inlined as markdown |
+
+Use `/llms.txt` for discovery and navigation. Use `/llms-full.txt` when you need the complete documentation in a single request.
+
+## Markdown content negotiation
+
+Any docs page returns clean markdown when requested with the `Accept: text/markdown` header. The markdown response is ~30x smaller than HTML and includes YAML frontmatter.
+
+```bash
+curl -H "Accept: text/markdown" https://docs.andiai.com/getting-started/quickstart
+```
+
+The response includes headers for automated discovery:
+
+- `Link` headers pointing to `/llms.txt` and `/llms-full.txt`
+- `X-Llms-Txt` header with the llms.txt URL
+
+## LLM-ready search responses
+
+The Search API supports a `format=context` parameter that returns results as markdown optimized for LLM context windows. See [response format](/features/response-format) for details.
+
+## AI crawler access
+
+The site's `robots.txt` explicitly allows AI crawlers including GPTBot, ClaudeBot, and PerplexityBot.
