@@ -1,0 +1,188 @@
+---
+title: RAG pipeline
+description: Use Andi search results as retrieval context for a language model to generate grounded answers.
+icon: brain
+keywords:
+  - RAG example
+  - retrieval augmented generation
+  - LLM context grounding
+  - search API RAG
+---
+
+Retrieval-augmented generation (RAG) pairs a search retrieval step with an LLM generation step. The Andi API handles retrieval — you pass the results as context to the LLM, which generates answers grounded in real web sources.
+
+## How it works
+
+1. User asks a question
+2. Your app searches the web via the Andi API
+3. Search results become context for the LLM prompt
+4. The LLM generates an answer grounded in those results
+
+## Complete example
+
+<CodeGroup>
+
+```bash curl
+# Step 1: Search
+results=$(curl -s \
+  "https://search-api.andisearch.com/api/v1/search?q=what+causes+aurora+borealis&extracts=true&limit=5" \
+  -H "x-api-key: $ANDI_API_KEY")
+
+# Step 2: Format context (extract titles and descriptions)
+context=$(echo "$results" | jq -r '.results[] | "[\(.title)](\(.link))\n\(.desc)\n"')
+
+echo "Context for LLM:"
+echo "$context"
+# Step 3: Pass $context to your LLM of choice
+```
+
+```python Python
+import os
+import requests
+
+api_key = os.environ["ANDI_API_KEY"]
+
+# Step 1: Search for context
+search_response = requests.get(
+    "https://search-api.andisearch.com/api/v1/search",
+    params={
+        "q": "what causes aurora borealis",
+        "extracts": "true",
+        "limit": 5,
+    },
+    headers={"x-api-key": api_key},
+)
+search_data = search_response.json()
+
+# Step 2: Format results as context
+context_parts = []
+for result in search_data["results"]:
+    text = result["desc"]
+    if result.get("extracts"):
+        text = " ".join(result["extracts"])
+    context_parts.append(f"[{result['title']}]({result['link']})\n{text}")
+
+context = "\n\n".join(context_parts)
+
+# Step 3: Build the LLM prompt
+prompt = f"""Answer the user's question using only the search results below.
+Cite sources by linking to the URLs provided.
+
+Search results:
+{context}
+
+Question: What causes the aurora borealis?"""
+
+# Step 4: Send to your LLM (example with OpenAI-compatible API)
+# completion = client.chat.completions.create(
+#     model="your-model",
+#     messages=[{"role": "user", "content": prompt}],
+# )
+print(prompt)
+```
+
+```javascript JavaScript
+const apiKey = process.env.ANDI_API_KEY;
+
+// Step 1: Search for context
+const url = new URL("https://search-api.andisearch.com/api/v1/search");
+url.searchParams.set("q", "what causes aurora borealis");
+url.searchParams.set("extracts", "true");
+url.searchParams.set("limit", "5");
+
+const searchResponse = await fetch(url, {
+  headers: { "x-api-key": apiKey },
+});
+const searchData = await searchResponse.json();
+
+// Step 2: Format results as context
+const context = searchData.results
+  .map((r) => {
+    const text = r.extracts ? r.extracts.join(" ") : r.desc;
+    return `[${r.title}](${r.link})\n${text}`;
+  })
+  .join("\n\n");
+
+// Step 3: Build the LLM prompt
+const prompt = `Answer the user's question using only the search results below.
+Cite sources by linking to the URLs provided.
+
+Search results:
+${context}
+
+Question: What causes the aurora borealis?`;
+
+// Step 4: Send to your LLM
+console.log(prompt);
+```
+
+</CodeGroup>
+
+## Using `format=context`
+
+For simpler RAG setups, use `format=context` to get results pre-formatted as markdown. This skips the manual formatting step:
+
+```python
+response = requests.get(
+    "https://search-api.andisearch.com/api/v1/search",
+    params={
+        "q": "what causes aurora borealis",
+        "format": "context",
+        "limit": 5,
+    },
+    headers={"x-api-key": api_key},
+)
+
+# Response is markdown text — pass directly to your LLM
+context = response.text
+```
+
+<Tip>
+`format=context` is the fastest path to a working RAG pipeline. Use `format=json` with `extracts=true` when you need more control over how context is structured.
+</Tip>
+
+## Using deep search for RAG
+
+For research-heavy queries, deep search provides broader source coverage and spell correction:
+
+```python
+response = requests.get(
+    "https://search-api.andisearch.com/api/v1/search",
+    params={
+        "q": "what causes aurora borealis",
+        "depth": "deep",
+        "extracts": "true",
+        "limit": 10,
+    },
+    headers={"x-api-key": api_key},
+)
+```
+
+<Note>
+Deep search takes ~2-3 seconds vs ~1 second for fast search. Use it when answer quality matters more than latency.
+</Note>
+
+## Tips for better RAG results
+
+- **Use `extracts=true`** to get longer text passages beyond the short `desc` field
+- **Set `limit=5` to `limit=10`** — more results give the LLM more context to draw from, but too many can dilute relevance
+- **Include source URLs** in the prompt so the LLM can cite them
+- **Use `includeDomains`** to restrict to authoritative sources for domain-specific questions
+- **Tell the LLM to say "I don't know"** when the search results don't contain the answer
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="AI agent tool" icon="robot" href="/examples/ai-agent-tool">
+    Define Andi search as a tool for an AI agent.
+  </Card>
+  <Card title="Research assistant" icon="book-open" href="/examples/research-assistant">
+    Multi-query search with result aggregation.
+  </Card>
+  <Card title="Response format" icon="brackets-curly" href="/features/response-format">
+    Response structure and result types.
+  </Card>
+  <Card title="Deep search" icon="microscope" href="/search/deep-search">
+    When to use deep vs fast search.
+  </Card>
+</CardGroup>

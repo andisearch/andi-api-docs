@@ -1,0 +1,227 @@
+---
+title: News monitoring
+description: Build automated news monitoring with date filtering, intent forcing, and domain restrictions.
+icon: newspaper
+keywords:
+  - news monitoring
+  - news search API
+  - automated news alerts
+  - date filtering example
+---
+
+This example builds a news monitoring system that searches for recent articles on specific topics, filters by date and source, and collects results for processing.
+
+## Complete example
+
+<CodeGroup>
+
+```bash curl
+# Search for AI news from the past 24 hours
+curl -s "https://search-api.andisearch.com/api/v1/search?q=artificial+intelligence&intent=news&dateRange=24h&limit=10" \
+  -H "x-api-key: $ANDI_API_KEY" | jq '.results[] | {title, link, date, source}'
+```
+
+```python Python
+import os
+import requests
+from datetime import datetime
+
+api_key = os.environ["ANDI_API_KEY"]
+
+
+def search_news(topic: str, date_range: str = "24h", domains: list[str] | None = None) -> list[dict]:
+    """Search for recent news on a topic."""
+    params = {
+        "q": topic,
+        "intent": "news",
+        "dateRange": date_range,
+        "limit": 20,
+    }
+    if domains:
+        params["includeDomains"] = ",".join(domains)
+
+    response = requests.get(
+        "https://search-api.andisearch.com/api/v1/search",
+        params=params,
+        headers={"x-api-key": api_key},
+    )
+    response.raise_for_status()
+    data = response.json()
+
+    articles = []
+    # Check both results and news arrays
+    for result in data.get("news", data.get("results", [])):
+        articles.append({
+            "title": result["title"],
+            "url": result["link"],
+            "source": result["source"],
+            "date": result.get("date"),
+            "summary": result["desc"],
+        })
+
+    return articles
+
+
+# Monitor multiple topics
+topics = [
+    "artificial intelligence regulation",
+    "large language models",
+    "AI safety research",
+]
+
+for topic in topics:
+    articles = search_news(topic, date_range="24h")
+    print(f"\n{topic}: {len(articles)} articles")
+    for article in articles[:3]:
+        print(f"  [{article['source']}] {article['title']}")
+```
+
+```javascript JavaScript
+const apiKey = process.env.ANDI_API_KEY;
+
+async function searchNews(topic, dateRange = "24h", domains = null) {
+  const url = new URL("https://search-api.andisearch.com/api/v1/search");
+  url.searchParams.set("q", topic);
+  url.searchParams.set("intent", "news");
+  url.searchParams.set("dateRange", dateRange);
+  url.searchParams.set("limit", "20");
+  if (domains) {
+    url.searchParams.set("includeDomains", domains.join(","));
+  }
+
+  const response = await fetch(url, {
+    headers: { "x-api-key": apiKey },
+  });
+
+  if (!response.ok) throw new Error(`Search failed: ${response.status}`);
+
+  const data = await response.json();
+  const results = data.news || data.results || [];
+
+  return results.map((r) => ({
+    title: r.title,
+    url: r.link,
+    source: r.source,
+    date: r.date,
+    summary: r.desc,
+  }));
+}
+
+// Monitor multiple topics
+const topics = [
+  "artificial intelligence regulation",
+  "large language models",
+  "AI safety research",
+];
+
+for (const topic of topics) {
+  const articles = await searchNews(topic, "24h");
+  console.log(`\n${topic}: ${articles.length} articles`);
+  articles.slice(0, 3).forEach((a) => {
+    console.log(`  [${a.source}] ${a.title}`);
+  });
+}
+```
+
+</CodeGroup>
+
+## How it works
+
+1. **`intent=news`** forces news-specific results rather than general web search
+2. **`dateRange=24h`** limits results to the past 24 hours
+3. **News array** — when the intent is `news`, results may appear in the `news` array alongside `results`
+4. **Multiple topics** — loop through topics to monitor several areas at once
+
+## Variations
+
+### Restrict to trusted sources
+
+Limit results to specific publications:
+
+```python
+tech_sources = [
+    "arstechnica.com",
+    "wired.com",
+    "technologyreview.com",
+    "theverge.com",
+]
+
+articles = search_news(
+    "artificial intelligence",
+    date_range="week",
+    domains=tech_sources,
+)
+```
+
+### Exclude aggregators
+
+Remove noisy domains from results:
+
+```python
+response = requests.get(
+    "https://search-api.andisearch.com/api/v1/search",
+    params={
+        "q": "AI startups funding",
+        "intent": "news",
+        "dateRange": "week",
+        "excludeDomains": "reddit.com,medium.com",
+    },
+    headers={"x-api-key": api_key},
+)
+```
+
+### Custom date range
+
+Search a specific time window:
+
+```python
+response = requests.get(
+    "https://search-api.andisearch.com/api/v1/search",
+    params={
+        "q": "product launch",
+        "intent": "news",
+        "dateFrom": "2025-03-01",
+        "dateTo": "2025-03-15",
+    },
+    headers={"x-api-key": api_key},
+)
+```
+
+### Scheduled monitoring
+
+Run searches on a schedule using cron or a task scheduler:
+
+```python
+import time
+
+def monitor_loop(topics: list[str], interval_seconds: int = 3600):
+    """Check for new articles every interval."""
+    while True:
+        for topic in topics:
+            articles = search_news(topic, date_range="24h")
+            if articles:
+                print(f"[{datetime.now()}] {topic}: {len(articles)} new articles")
+                # Process articles: send alerts, save to database, etc.
+        time.sleep(interval_seconds)
+```
+
+<Warning>
+When running scheduled searches, respect your rate limits. Space requests out and use the `X-RateLimit-Remaining` header to monitor usage.
+</Warning>
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Filtering" icon="filter" href="/features/filtering">
+    Domain, date, and content filtering options.
+  </Card>
+  <Card title="Research assistant" icon="book-open" href="/examples/research-assistant">
+    Multi-query search with result aggregation.
+  </Card>
+  <Card title="Rate limits" icon="gauge" href="/resources/rate-limits">
+    Rate limit configuration and handling.
+  </Card>
+  <Card title="Response format" icon="brackets-curly" href="/features/response-format">
+    Response structure and result types.
+  </Card>
+</CardGroup>

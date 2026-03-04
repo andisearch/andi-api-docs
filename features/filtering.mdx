@@ -1,6 +1,7 @@
 ---
 title: Filtering
 description: Filter Andi AI Search API results by domain, date range, file type, and content location.
+icon: filter
 keywords:
   - domain filtering
   - date filtering
@@ -108,3 +109,14 @@ curl "https://search-api.andisearch.com/api/v1/search?q=machine+learning&include
 ```
 
 This searches for machine learning PDFs on arxiv.org and github.com from the past month.
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Query operators" icon="terminal" href="/features/query-operators">
+    In-query operators like `site:` and `filetype:`.
+  </Card>
+  <Card title="News monitoring" icon="newspaper" href="/examples/news-monitoring">
+    Automated news search with date and domain filtering.
+  </Card>
+</CardGroup>

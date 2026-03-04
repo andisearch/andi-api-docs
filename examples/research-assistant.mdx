@@ -1,0 +1,271 @@
+---
+title: Research assistant
+description: Build a research assistant with multi-query search, result aggregation, and deep search.
+icon: book-open
+keywords:
+  - multi-query search
+  - research tool
+  - result aggregation
+  - deep search example
+---
+
+This example builds a research assistant that searches multiple related queries, deduplicates and aggregates the results, and uses deep search for thorough coverage.
+
+## Complete example
+
+<CodeGroup>
+
+```bash curl
+# Multi-query search with a JSON array
+curl -G -s "https://search-api.andisearch.com/api/v1/search" \
+  --data-urlencode 'q=["quantum computing applications", "quantum computing challenges", "quantum computing 2025"]' \
+  -d "depth=deep" \
+  -d "limit=10" \
+  -H "x-api-key: $ANDI_API_KEY" | jq '{
+    correctedQuery,
+    result_count: (.results | length),
+    results: [.results[] | {title, link, source}]
+  }'
+```
+
+```python Python
+import os
+import requests
+
+api_key = os.environ["ANDI_API_KEY"]
+
+
+def research(queries: list[str], depth: str = "deep", limit: int = 10) -> dict:
+    """Run multiple search queries and aggregate results."""
+    all_results = []
+    seen_urls = set()
+    corrected_queries = {}
+
+    for query in queries:
+        response = requests.get(
+            "https://search-api.andisearch.com/api/v1/search",
+            params={
+                "q": query,
+                "depth": depth,
+                "limit": limit,
+                "extracts": "true",
+            },
+            headers={"x-api-key": api_key},
+        )
+        response.raise_for_status()
+        data = response.json()
+
+        # Track spell corrections
+        if data.get("correctedQuery"):
+            corrected_queries[query] = data["correctedQuery"]
+
+        # Deduplicate by URL
+        for result in data["results"]:
+            if result["link"] not in seen_urls:
+                seen_urls.add(result["link"])
+                result["_query"] = data.get("correctedQuery", query)
+                all_results.append(result)
+
+    return {
+        "results": all_results,
+        "total_unique": len(all_results),
+        "corrected_queries": corrected_queries,
+    }
+
+
+# Research a topic from multiple angles
+queries = [
+    "quantum computing applications",
+    "quantum computing challenges limitations",
+    "quantum computing breakthroughs 2025",
+]
+
+research_data = research(queries)
+print(f"Found {research_data['total_unique']} unique results across {len(queries)} queries")
+
+if research_data["corrected_queries"]:
+    print("\nSpell corrections:")
+    for original, corrected in research_data["corrected_queries"].items():
+        print(f"  {original} -> {corrected}")
+
+print("\nTop results:")
+for result in research_data["results"][:10]:
+    print(f"  [{result['source']}] {result['title']}")
+```
+
+```javascript JavaScript
+const apiKey = process.env.ANDI_API_KEY;
+
+async function research(queries, depth = "deep", limit = 10) {
+  const allResults = [];
+  const seenUrls = new Set();
+  const correctedQueries = {};
+
+  for (const query of queries) {
+    const url = new URL("https://search-api.andisearch.com/api/v1/search");
+    url.searchParams.set("q", query);
+    url.searchParams.set("depth", depth);
+    url.searchParams.set("limit", String(limit));
+    url.searchParams.set("extracts", "true");
+
+    const response = await fetch(url, {
+      headers: { "x-api-key": apiKey },
+    });
+
+    if (!response.ok) throw new Error(`Search failed: ${response.status}`);
+
+    const data = await response.json();
+
+    if (data.correctedQuery) {
+      correctedQueries[query] = data.correctedQuery;
+    }
+
+    for (const result of data.results) {
+      if (!seenUrls.has(result.link)) {
+        seenUrls.add(result.link);
+        result._query = data.correctedQuery || query;
+        allResults.push(result);
+      }
+    }
+  }
+
+  return {
+    results: allResults,
+    totalUnique: allResults.length,
+    correctedQueries,
+  };
+}
+
+// Research a topic from multiple angles
+const queries = [
+  "quantum computing applications",
+  "quantum computing challenges limitations",
+  "quantum computing breakthroughs 2025",
+];
+
+const data = await research(queries);
+console.log(
+  `Found ${data.totalUnique} unique results across ${queries.length} queries`
+);
+
+if (Object.keys(data.correctedQueries).length > 0) {
+  console.log("\nSpell corrections:");
+  for (const [original, corrected] of Object.entries(data.correctedQueries)) {
+    console.log(`  ${original} -> ${corrected}`);
+  }
+}
+
+console.log("\nTop results:");
+data.results.slice(0, 10).forEach((r) => {
+  console.log(`  [${r.source}] ${r.title}`);
+});
+```
+
+</CodeGroup>
+
+## How it works
+
+1. **Multiple queries** — search the same topic from different angles to get broader coverage
+2. **Deep search** — `depth=deep` enables spell correction and extended source coverage
+3. **Deduplication** — track URLs already seen to avoid duplicate results across queries
+4. **Spell correction tracking** — `correctedQuery` shows when deep search fixed a typo
+
+## Using multi-query in a single request
+
+The API also supports passing a JSON array of up to 5 queries in the `q` parameter:
+
+```python
+import json
+
+response = requests.get(
+    "https://search-api.andisearch.com/api/v1/search",
+    params={
+        "q": json.dumps([
+            "quantum computing applications",
+            "quantum computing challenges",
+            "quantum computing 2025",
+        ]),
+        "depth": "deep",
+        "limit": 10,
+    },
+    headers={"x-api-key": api_key},
+)
+```
+
+<Note>
+Multi-query via JSON array returns combined results in a single response. The sequential approach above gives you per-query control and deduplication, but uses more API calls.
+</Note>
+
+## Variations
+
+### With source filtering
+
+Focus research on academic or authoritative sources:
+
+```python
+research_data = research(
+    queries=["quantum computing applications"],
+    depth="deep",
+    limit=20,
+)
+
+# Post-filter by domain
+academic_results = [
+    r for r in research_data["results"]
+    if any(d in r["source"] for d in ["arxiv.org", "nature.com", "ieee.org", "acm.org"])
+]
+```
+
+Or use `includeDomains` to restrict at the API level:
+
+```python
+response = requests.get(
+    "https://search-api.andisearch.com/api/v1/search",
+    params={
+        "q": "quantum computing",
+        "depth": "deep",
+        "includeDomains": "arxiv.org,nature.com,ieee.org",
+    },
+    headers={"x-api-key": api_key},
+)
+```
+
+### Generating a research summary
+
+Combine results with an LLM for a synthesized report:
+
+```python
+# Gather context from research
+context_parts = []
+for result in research_data["results"][:15]:
+    text = result["desc"]
+    if result.get("extracts"):
+        text = " ".join(result["extracts"])
+    context_parts.append(f"[{result['title']}]({result['link']})\n{text}")
+
+context = "\n\n".join(context_parts)
+
+prompt = f"""Write a research summary based on these search results.
+Organize by theme. Cite sources with URLs.
+
+{context}"""
+
+# Send to your LLM of choice
+```
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Deep search" icon="microscope" href="/search/deep-search">
+    Spell correction and extended source coverage.
+  </Card>
+  <Card title="RAG pipeline" icon="brain" href="/examples/rag-pipeline">
+    Use search results as LLM context.
+  </Card>
+  <Card title="Query parameters" icon="sliders" href="/features/query-parameters">
+    Full parameter reference.
+  </Card>
+  <Card title="Filtering" icon="filter" href="/features/filtering">
+    Domain, date, and content filtering.
+  </Card>
+</CardGroup>

@@ -1,6 +1,7 @@
 ---
 title: Deep search
 description: Enhanced search mode with spell correction, more sources, and deeper analysis in ~2–3 seconds.
+icon: microscope
 keywords:
   - deep search API
   - spell correction API
@@ -26,6 +27,15 @@ response = requests.get(
     params={"q": "quantm computing applications", "depth": "deep"},
     headers={"x-api-key": "YOUR_API_KEY"}
 )
+
+data = response.json()
+
+# Check if the query was spell-corrected
+if data.get("correctedQuery"):
+    print(f"Corrected: {data['correctedQuery']}")
+
+for result in data["results"]:
+    print(f"{result['title']} — {result['source']}")
 ```
 
 ```javascript JavaScript
@@ -33,6 +43,14 @@ const response = await fetch(
   "https://search-api.andisearch.com/api/v1/search?q=quantm+computing+applications&depth=deep",
   { headers: { "x-api-key": "YOUR_API_KEY" } }
 );
+
+const data = await response.json();
+
+if (data.correctedQuery) {
+  console.log(`Corrected: ${data.correctedQuery}`);
+}
+
+data.results.forEach(r => console.log(`${r.title} — ${r.source}`));
 ```
 
 </CodeGroup>
@@ -82,4 +100,51 @@ The example query intentionally misspells "quantum" — deep search corrects it 
 }
 ```
 
-Note that the `correctedQuery` field shows the corrected spelling.
+### Handling corrected queries
+
+The `correctedQuery` field appears only when deep search detects and fixes a misspelling. Use it to show users what query was actually searched:
+
+```python
+data = response.json()
+if data.get("correctedQuery"):
+    print(f"Showing results for: {data['correctedQuery']}")
+```
+
+<Note>
+`correctedQuery` is only present on deep search responses where a correction was made. Fast search does not perform spell correction.
+</Note>
+
+<Accordion title="Adding extracts and metadata">
+Combine deep search with richer output options:
+
+```bash
+# Deep search with text extracts
+curl "https://search-api.andisearch.com/api/v1/search?q=quantum+computing&depth=deep&extracts=true" \
+  -H "x-api-key: YOUR_API_KEY"
+
+# Deep search with full metadata
+curl "https://search-api.andisearch.com/api/v1/search?q=quantum+computing&depth=deep&metadata=full" \
+  -H "x-api-key: YOUR_API_KEY"
+
+# Deep search as LLM context
+curl "https://search-api.andisearch.com/api/v1/search?q=quantum+computing&depth=deep&format=context" \
+  -H "x-api-key: YOUR_API_KEY"
+```
+</Accordion>
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Fast search" icon="bolt" href="/search/fast-search">
+    Default mode for real-time applications.
+  </Card>
+  <Card title="Response format" icon="brackets-curly" href="/features/response-format">
+    Response structure and result types.
+  </Card>
+  <Card title="Research assistant" icon="book-open" href="/examples/research-assistant">
+    Multi-query search with result aggregation.
+  </Card>
+  <Card title="Query parameters" icon="sliders" href="/features/query-parameters">
+    Full parameter reference.
+  </Card>
+</CardGroup>

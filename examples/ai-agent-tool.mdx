@@ -1,0 +1,225 @@
+---
+title: AI agent tool
+description: Define Andi search as a tool or function for an AI agent framework.
+icon: robot
+keywords:
+  - AI agent search tool
+  - function calling
+  - tool use
+  - agent web search
+---
+
+AI agents use tool definitions to decide when and how to call external services. This example shows how to define Andi search as a tool that your agent can invoke to retrieve current web information.
+
+## Tool definition
+
+Define the search tool with a description, parameters, and expected output:
+
+<CodeGroup>
+
+```python Python (OpenAI-compatible)
+search_tool = {
+    "type": "function",
+    "function": {
+        "name": "web_search",
+        "description": "Search the web for current information. Use this when the user asks about recent events, facts you're unsure about, or anything that requires up-to-date information.",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "query": {
+                    "type": "string",
+                    "description": "The search query",
+                },
+                "limit": {
+                    "type": "integer",
+                    "description": "Number of results (1-100, default 10)",
+                },
+            },
+            "required": ["query"],
+        },
+    },
+}
+```
+
+```javascript JavaScript (OpenAI-compatible)
+const searchTool = {
+  type: "function",
+  function: {
+    name: "web_search",
+    description:
+      "Search the web for current information. Use this when the user asks about recent events, facts you're unsure about, or anything that requires up-to-date information.",
+    parameters: {
+      type: "object",
+      properties: {
+        query: {
+          type: "string",
+          description: "The search query",
+        },
+        limit: {
+          type: "integer",
+          description: "Number of results (1-100, default 10)",
+        },
+      },
+      required: ["query"],
+    },
+  },
+};
+```
+
+</CodeGroup>
+
+## Tool execution
+
+When the agent calls the tool, execute the search and return results:
+
+<CodeGroup>
+
+```python Python
+import os
+import json
+import requests
+
+api_key = os.environ["ANDI_API_KEY"]
+
+
+def execute_web_search(query: str, limit: int = 5) -> str:
+    """Execute a web search and return formatted results."""
+    response = requests.get(
+        "https://search-api.andisearch.com/api/v1/search",
+        params={"q": query, "limit": limit, "extracts": "true"},
+        headers={"x-api-key": api_key},
+    )
+
+    if response.status_code != 200:
+        return json.dumps({"error": response.json().get("error", "Search failed")})
+
+    data = response.json()
+    results = []
+    for r in data["results"]:
+        result = {
+            "title": r["title"],
+            "url": r["link"],
+            "description": r["desc"],
+        }
+        if r.get("extracts"):
+            result["content"] = " ".join(r["extracts"])
+        results.append(result)
+
+    return json.dumps(results)
+```
+
+```javascript JavaScript
+const apiKey = process.env.ANDI_API_KEY;
+
+async function executeWebSearch(query, limit = 5) {
+  const url = new URL("https://search-api.andisearch.com/api/v1/search");
+  url.searchParams.set("q", query);
+  url.searchParams.set("limit", String(limit));
+  url.searchParams.set("extracts", "true");
+
+  const response = await fetch(url, {
+    headers: { "x-api-key": apiKey },
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    return JSON.stringify({ error: error.error || "Search failed" });
+  }
+
+  const data = await response.json();
+  return JSON.stringify(
+    data.results.map((r) => ({
+      title: r.title,
+      url: r.link,
+      description: r.desc,
+      content: r.extracts ? r.extracts.join(" ") : undefined,
+    }))
+  );
+}
+```
+
+</CodeGroup>
+
+## Putting it together
+
+Here's how the tool fits into an agent loop:
+
+```python
+import openai
+
+client = openai.OpenAI()
+
+messages = [
+    {"role": "system", "content": "You are a helpful assistant with web search access. Cite sources with URLs."},
+    {"role": "user", "content": "What are the latest developments in quantum computing?"},
+]
+
+# Step 1: LLM decides to call the tool
+response = client.chat.completions.create(
+    model="gpt-4o",
+    messages=messages,
+    tools=[search_tool],
+)
+
+message = response.choices[0].message
+
+# Step 2: Execute tool calls
+if message.tool_calls:
+    for tool_call in message.tool_calls:
+        args = json.loads(tool_call.function.arguments)
+        result = execute_web_search(**args)
+
+        messages.append(message)
+        messages.append({
+            "role": "tool",
+            "tool_call_id": tool_call.id,
+            "content": result,
+        })
+
+    # Step 3: LLM generates final answer with search context
+    final = client.chat.completions.create(
+        model="gpt-4o",
+        messages=messages,
+    )
+    print(final.choices[0].message.content)
+```
+
+## Using `format=context` for agents
+
+For agents that pass search results directly into conversation context, `format=context` returns pre-formatted markdown:
+
+```python
+def execute_web_search_context(query: str) -> str:
+    """Return search results as markdown text."""
+    response = requests.get(
+        "https://search-api.andisearch.com/api/v1/search",
+        params={"q": query, "format": "context", "limit": 5},
+        headers={"x-api-key": api_key},
+    )
+    return response.text
+```
+
+<Tip>
+`format=context` reduces the code in your tool executor — no JSON parsing or formatting needed. The tradeoff is less control over result structure.
+</Tip>
+
+## Other agent frameworks
+
+The same pattern works with any agent framework. See [Build with AI agents](/resources/ai-agents) for MCP server integration, which lets tools like Claude Code and Cursor access the docs directly.
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Build with AI agents" icon="robot" href="/resources/ai-agents">
+    MCP server, llms.txt, and markdown access.
+  </Card>
+  <Card title="RAG pipeline" icon="brain" href="/examples/rag-pipeline">
+    Search as retrieval context for LLMs.
+  </Card>
+  <Card title="Query parameters" icon="sliders" href="/features/query-parameters">
+    Full parameter reference.
+  </Card>
+  <Card title="Error handling" icon="triangle-exclamation" href="/resources/error-handling">
+    Error codes and retry strategies.
+  </Card>
+</CardGroup>

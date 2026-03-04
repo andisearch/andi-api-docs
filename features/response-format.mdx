@@ -1,6 +1,7 @@
 ---
 title: Response format
 description: Structure of the Andi AI Search API response, including result types and instant answers.
+icon: brackets-curly
 keywords:
   - search API response
   - JSON response format
@@ -8,6 +9,10 @@ keywords:
 ---
 
 All responses are JSON objects. The `format=context` option returns markdown text instead — see [query parameters](/features/query-parameters) for details.
+
+<Tip>
+The `results_type` field tells you the shape of the response. Use it to determine which arrays and objects are present — for example, `results_type: "weather"` means a `weather` object is included.
+</Tip>
 
 ## Top-level fields
 
@@ -55,6 +60,24 @@ Each result in the `results` array has this structure:
 | `extracts` | array | No | Text extracts from the page, when available (when `extracts=true`) |
 | `contentType` | string | No | Content type (when `metadata=full`) |
 | `reader` | object | No | Extracted page content (when `metadata=full`) |
+
+### Accessing key fields
+
+```python
+data = response.json()
+
+for result in data["results"]:
+    # Always present
+    print(result["title"], result["link"], result["source"])
+
+    # Optional fields — check before accessing
+    if result.get("snippet"):
+        print(f"Snippet: {result['snippet']}")
+    if result.get("extracts"):
+        print(f"Extract: {result['extracts'][0][:200]}")
+    if result.get("date"):
+        print(f"Published: {result['date']}")
+```
 
 ## Result types
 
@@ -146,9 +169,8 @@ Mathematical queries return a `calculation` object:
 }
 ```
 
-### Images
-
-Image queries return an `images` array:
+<Accordion title="Image results">
+Image queries return an `images` array with thumbnail and dimension data:
 
 ```json
 {
@@ -174,6 +196,15 @@ Image queries return an `images` array:
 ```
 
 Image results include `thumbnail` (thumbnail URL), `width`, and `height` as string values.
+</Accordion>
+
+## Parsing tips
+
+- **Check `results_type` first** to know the response shape before accessing type-specific fields
+- **`results` is always an array** but may be empty for instant answers (weather, calculations)
+- **`desc` vs `snippet`**: `desc` is the page's general description; `snippet` is a query-relevant excerpt (when available)
+- **`answer` at top level** is a generated answer string (may be empty); `answer` on individual results is an inline answer for instant answer result types
+- **Optional fields** (`date`, `image`, `snippet`, `extracts`) may not be present on every result — always check before accessing
 
 ## Search intents
 
@@ -228,3 +259,14 @@ The response always includes a `metrics` object with search performance data:
 | `results_returned` | integer | Results returned in this response |
 | `total_results_found` | integer | Total results found across sources |
 | `cached` | boolean | Whether response was from cache (only present on cache hits) |
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Query parameters" icon="sliders" href="/features/query-parameters">
+    Full parameter reference.
+  </Card>
+  <Card title="RAG pipeline" icon="brain" href="/examples/rag-pipeline">
+    Use search results as LLM context.
+  </Card>
+</CardGroup>

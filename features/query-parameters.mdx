@@ -1,6 +1,7 @@
 ---
 title: Query parameters
 description: Complete reference for all Andi AI Search API query parameters.
+icon: sliders
 keywords:
   - search API parameters
   - query parameters
@@ -8,6 +9,10 @@ keywords:
 ---
 
 All parameters are passed as query string parameters on the `GET /api/v1/search` endpoint.
+
+<Tip>
+Most integrations only need `q`, `limit`, and `depth`. The filtering and output parameters below are available when you need more control.
+</Tip>
 
 ## Core parameters
 
@@ -35,6 +40,12 @@ When not set, the API auto-detects intent from the query. You can force a specif
 
 The API also accepts full intent names (e.g., `FallbackSearchIntent`, `VideoSearchIntent`) and resolves matches flexibly through exact match, case-insensitive match, and substring match.
 
+```bash
+# Force news intent
+curl "https://search-api.andisearch.com/api/v1/search?q=AI+startups&intent=news" \
+  -H "x-api-key: YOUR_API_KEY"
+```
+
 ## Output parameters
 
 | Parameter | Type | Default | Description |
@@ -42,6 +53,20 @@ The API also accepts full intent names (e.g., `FallbackSearchIntent`, `VideoSear
 | `format` | string | `json` | Response format: `json` or `context`. The `context` format returns results as markdown text, suitable for passing to language models. |
 | `metadata` | string | `basic` | Metadata level: `basic` or `full`. With `full`, results include `contentType` and `reader` data. |
 | `extracts` | boolean | `false` | Include longer text extracts from result pages |
+
+```bash
+# Get results as markdown for LLM context
+curl "https://search-api.andisearch.com/api/v1/search?q=machine+learning&format=context" \
+  -H "x-api-key: YOUR_API_KEY"
+
+# Get results with text extracts
+curl "https://search-api.andisearch.com/api/v1/search?q=machine+learning&extracts=true" \
+  -H "x-api-key: YOUR_API_KEY"
+```
+
+<Warning>
+`metadata=full` adds latency because it fetches additional data from each result page. Use it only when you need `contentType` or `reader` data.
+</Warning>
 
 ## Filtering parameters
 
@@ -62,6 +87,12 @@ The API also accepts full intent names (e.g., `FallbackSearchIntent`, `VideoSear
 
 Use either `dateRange` for relative filtering or `dateFrom`/`dateTo` for absolute date ranges. See [filtering](/features/filtering) for details.
 
+```bash
+# Results from the past week
+curl "https://search-api.andisearch.com/api/v1/search?q=AI+news&dateRange=week" \
+  -H "x-api-key: YOUR_API_KEY"
+```
+
 ## Domain filtering
 
 | Parameter | Type | Description |
@@ -70,6 +101,12 @@ Use either `dateRange` for relative filtering or `dateFrom`/`dateTo` for absolut
 | `excludeDomains` | string | Comma-separated domains to exclude from results |
 
 Both support wildcards: `*.example.com` matches all subdomains. See [filtering](/features/filtering) for details.
+
+```bash
+# Search only on specific sites
+curl "https://search-api.andisearch.com/api/v1/search?q=python+tutorials&includeDomains=docs.python.org,realpython.com" \
+  -H "x-api-key: YOUR_API_KEY"
+```
 
 ## Term filtering
 
@@ -130,3 +167,24 @@ curl -G "https://search-api.andisearch.com/api/v1/search" \
   --data-urlencode 'q=["artificial intelligence", "machine learning"]' \
   -H "x-api-key: YOUR_API_KEY"
 ```
+
+<Note>
+Multi-query search accepts a JSON array of up to 5 queries and returns combined results in a single response. URL-encode the JSON array when passing it as a query parameter.
+</Note>
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Filtering" icon="filter" href="/features/filtering">
+    Domain, date, and content filtering in depth.
+  </Card>
+  <Card title="Query operators" icon="terminal" href="/features/query-operators">
+    In-query operators like `site:` and `filetype:`.
+  </Card>
+  <Card title="Basic search example" icon="code" href="/examples/basic-search">
+    Complete integration with error handling.
+  </Card>
+  <Card title="Response format" icon="brackets-curly" href="/features/response-format">
+    Response structure and result types.
+  </Card>
+</CardGroup>

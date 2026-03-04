@@ -52,6 +52,24 @@
                 ]
             },
             {
+                "tab": "Examples",
+                "groups": [
+                    {
+                        "group": "Getting started",
+                        "pages": ["examples/basic-search"]
+                    },
+                    {
+                        "group": "Use cases",
+                        "pages": [
+                            "examples/rag-pipeline",
+                            "examples/ai-agent-tool",
+                            "examples/news-monitoring",
+                            "examples/research-assistant"
+                        ]
+                    }
+                ]
+            },
+            {
                 "tab": "API reference",
                 "groups": [
                     {

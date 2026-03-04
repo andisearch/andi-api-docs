@@ -1,6 +1,7 @@
 ---
 title: Rate limits
 description: Rate limit configuration and handling for the Andi AI Search API.
+icon: gauge
 keywords:
   - API rate limits
   - rate limiting
@@ -63,3 +64,14 @@ if response.status_code == 429:
 ## Monitoring usage
 
 Use the `X-RateLimit-Remaining` header to track how close you are to your limit in real time. For aggregate usage and credit consumption, see the [API Console](https://console.andiai.com).
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Error handling" icon="triangle-exclamation" href="/resources/error-handling">
+    Error codes and retry strategies.
+  </Card>
+  <Card title="Authentication" icon="key" href="/getting-started/authentication">
+    API key management and security.
+  </Card>
+</CardGroup>

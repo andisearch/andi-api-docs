@@ -1,6 +1,7 @@
 ---
 title: Authentication
 description: Authenticate with the Andi AI Search API using API keys in the x-api-key header.
+icon: key
 keywords:
   - API key authentication
   - x-api-key header
@@ -18,6 +19,76 @@ Every request to the Andi AI Search API must include an API key in the `x-api-ke
 3. Click **Create Key**
 4. Copy the key — it's only shown once
 
+## Setting up your environment
+
+Store your API key as an environment variable rather than hardcoding it in your code.
+
+<AccordionGroup>
+
+<Accordion title="Local development">
+Create a `.env` file in your project root:
+
+```bash
+ANDI_API_KEY=your-api-key
+```
+
+Load it in your code:
+
+```python
+# Python (with python-dotenv)
+from dotenv import load_dotenv
+load_dotenv()
+
+import os
+api_key = os.environ["ANDI_API_KEY"]
+```
+
+```javascript
+// JavaScript (with dotenv)
+import "dotenv/config";
+
+const apiKey = process.env.ANDI_API_KEY;
+```
+
+Or export directly in your shell:
+
+```bash
+export ANDI_API_KEY="your-api-key"
+```
+</Accordion>
+
+<Accordion title="Docker">
+Pass the key as an environment variable:
+
+```bash
+docker run -e ANDI_API_KEY=your-api-key your-image
+```
+
+Or use an env file:
+
+```bash
+docker run --env-file .env your-image
+```
+</Accordion>
+
+<Accordion title="CI/CD (GitHub Actions)">
+Add `ANDI_API_KEY` as a repository secret, then reference it in your workflow:
+
+```yaml
+steps:
+  - name: Run search
+    env:
+      ANDI_API_KEY: ${{ secrets.ANDI_API_KEY }}
+    run: ./search-script.sh
+```
+</Accordion>
+
+<Accordion title="Vercel / Netlify">
+Add `ANDI_API_KEY` in your project's environment variables settings. These are automatically available as `process.env.ANDI_API_KEY` in your server-side code.
+</Accordion>
+
+</AccordionGroup>
+
 ## Managing keys
 
 The API Console lets you:
@@ -28,6 +99,10 @@ The API Console lets you:
 - **Revoke** keys that are no longer needed
 
 Each key tracks its own usage. You can monitor request counts and credit consumption per key in the console.
+
+<Tip>
+Use separate API keys for development and production. This makes it easy to rotate keys, track usage per environment, and revoke a compromised key without affecting other environments.
+</Tip>
 
 ## Security practices
 
@@ -40,12 +115,15 @@ Treat API keys like passwords. Never commit them to version control or expose th
 - Rotate keys periodically
 - Revoke keys immediately if compromised
 - Restrict key access to team members who need it
+- Add `.env` to your `.gitignore`
 
-```bash
-# Store your key in an environment variable
-export ANDI_API_KEY="your-api-key"
+## Next steps
 
-# Reference it in requests
-curl "https://search-api.andisearch.com/api/v1/search?q=test" \
-  -H "x-api-key: $ANDI_API_KEY"
-```
+<CardGroup cols={2}>
+  <Card title="Fast search" icon="bolt" href="/search/fast-search">
+    Make your first search request.
+  </Card>
+  <Card title="Error handling" icon="triangle-exclamation" href="/resources/error-handling">
+    Handle authentication errors and other failures.
+  </Card>
+</CardGroup>

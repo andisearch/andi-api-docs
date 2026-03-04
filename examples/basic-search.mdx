@@ -1,0 +1,187 @@
+---
+title: Basic search integration
+description: Build a complete search integration with environment variables, error handling, and response parsing.
+icon: code
+keywords:
+  - search integration example
+  - API integration tutorial
+  - search API example
+---
+
+This example builds a complete search integration from scratch — environment setup, request handling, error recovery, and result parsing.
+
+<Info>You need an API key to follow this guide. Get one from the [API Console](https://console.andiai.com).</Info>
+
+## Setup
+
+Store your API key as an environment variable rather than hardcoding it:
+
+<CodeGroup>
+
+```bash Shell
+export ANDI_API_KEY="your-api-key"
+```
+
+```python Python (.env file)
+# .env
+ANDI_API_KEY=your-api-key
+```
+
+```javascript JavaScript (.env file)
+# .env
+ANDI_API_KEY=your-api-key
+```
+
+</CodeGroup>
+
+## Complete example
+
+<CodeGroup>
+
+```bash curl
+#!/bin/bash
+
+# Search with error handling
+response=$(curl -s -w "\n%{http_code}" \
+  "https://search-api.andisearch.com/api/v1/search?q=best+programming+languages+2025&limit=5" \
+  -H "x-api-key: $ANDI_API_KEY")
+
+http_code=$(echo "$response" | tail -1)
+body=$(echo "$response" | sed '$d')
+
+if [ "$http_code" -eq 200 ]; then
+  echo "$body" | jq '.results[] | {title, link, source}'
+else
+  echo "Error $http_code: $(echo "$body" | jq -r '.error')"
+fi
+```
+
+```python Python
+import os
+import requests
+
+api_key = os.environ["ANDI_API_KEY"]
+
+response = requests.get(
+    "https://search-api.andisearch.com/api/v1/search",
+    params={"q": "best programming languages 2025", "limit": 5},
+    headers={"x-api-key": api_key},
+)
+
+if response.status_code == 200:
+    data = response.json()
+    for result in data["results"]:
+        print(f"{result['title']}")
+        print(f"  {result['link']}")
+        print(f"  {result['desc'][:100]}...")
+        print()
+elif response.status_code == 429:
+    retry_after = response.headers.get("Retry-After", 1)
+    print(f"Rate limited. Retry after {retry_after}s")
+else:
+    error = response.json()
+    print(f"Error {response.status_code}: {error['error']}")
+```
+
+```javascript JavaScript
+const apiKey = process.env.ANDI_API_KEY;
+
+const url = new URL("https://search-api.andisearch.com/api/v1/search");
+url.searchParams.set("q", "best programming languages 2025");
+url.searchParams.set("limit", "5");
+
+const response = await fetch(url, {
+  headers: { "x-api-key": apiKey },
+});
+
+if (response.ok) {
+  const data = await response.json();
+  for (const result of data.results) {
+    console.log(result.title);
+    console.log(`  ${result.link}`);
+    console.log(`  ${result.desc.slice(0, 100)}...`);
+    console.log();
+  }
+} else if (response.status === 429) {
+  const retryAfter = response.headers.get("Retry-After") || 1;
+  console.log(`Rate limited. Retry after ${retryAfter}s`);
+} else {
+  const error = await response.json();
+  console.log(`Error ${response.status}: ${error.error}`);
+}
+```
+
+</CodeGroup>
+
+## How it works
+
+1. **API key from environment** — loaded from `ANDI_API_KEY`, never hardcoded
+2. **Query parameters** — `q` for the search query, `limit` to cap results at 5
+3. **Status code check** — handle success, rate limiting, and other errors separately
+4. **Result parsing** — each result has `title`, `link`, `desc`, and `source`
+
+## Variations
+
+### With text extracts
+
+Add `extracts=true` to get longer text passages from each result page:
+
+```python
+response = requests.get(
+    "https://search-api.andisearch.com/api/v1/search",
+    params={"q": "best programming languages 2025", "extracts": "true"},
+    headers={"x-api-key": api_key},
+)
+
+data = response.json()
+for result in data["results"]:
+    if result.get("extracts"):
+        print(f"{result['title']}: {result['extracts'][0][:200]}")
+```
+
+### With domain filtering
+
+Restrict results to specific sites:
+
+```python
+response = requests.get(
+    "https://search-api.andisearch.com/api/v1/search",
+    params={
+        "q": "best programming languages 2025",
+        "includeDomains": "stackoverflow.com,github.com",
+    },
+    headers={"x-api-key": api_key},
+)
+```
+
+### Context format for LLMs
+
+Get results as markdown text, ready to pass into an LLM prompt:
+
+```python
+response = requests.get(
+    "https://search-api.andisearch.com/api/v1/search",
+    params={"q": "best programming languages 2025", "format": "context"},
+    headers={"x-api-key": api_key},
+)
+
+# Response is markdown text, not JSON
+context = response.text
+```
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="RAG pipeline" icon="brain" href="/examples/rag-pipeline">
+    Use search results as context for an LLM.
+  </Card>
+  <Card title="Query parameters" icon="sliders" href="/features/query-parameters">
+    Full parameter reference.
+  </Card>
+  <Card title="Error handling" icon="triangle-exclamation" href="/resources/error-handling">
+    Error codes and retry strategies.
+  </Card>
+  <Card title="Response format" icon="brackets-curly" href="/features/response-format">
+    Understand the response structure.
+  </Card>
+</CardGroup>
