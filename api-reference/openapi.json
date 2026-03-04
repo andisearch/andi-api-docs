@@ -233,6 +233,16 @@
             }
           },
           {
+            "name": "linkFormat",
+            "in": "query",
+            "description": "Field name for result URLs. Use `url` to receive the URL field as `url` instead of the default `link`. Only affects the `/search` and `/results` endpoints.",
+            "schema": {
+              "type": "string",
+              "enum": ["link", "url"],
+              "default": "link"
+            }
+          },
+          {
             "name": "filetype",
             "in": "query",
             "description": "Filter results by file type.",
