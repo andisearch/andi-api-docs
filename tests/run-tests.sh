@@ -2,8 +2,8 @@
 # Test runner for Andi AI Search API documentation tests
 #
 # Usage:
-#   ./tests/run-tests.sh              # Run all suites (72 API calls)
-#   ./tests/run-tests.sh --quick      # Run core suites only (17 API calls)
+#   ./tests/run-tests.sh              # Run all suites (83 API calls)
+#   ./tests/run-tests.sh --quick      # Run core suites only (28 API calls)
 #   ./tests/run-tests.sh auth errors  # Run specific suites
 #   ./tests/run-tests.sh --list       # List available suites
 
@@ -33,15 +33,17 @@ ALL_SUITES=(
   response
   errors
   pagination
+  examples
 )
 
-# Core suites for quick smoke tests (auth, basic search, params, errors, response)
+# Core suites for quick smoke tests (auth, basic search, params, errors, response, examples)
 QUICK_SUITES=(
   auth
   basic
   core-params
   errors
   response
+  examples
 )
 
 # --- List mode ---
