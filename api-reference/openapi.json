@@ -57,7 +57,7 @@
           {
             "name": "depth",
             "in": "query",
-            "description": "Search depth. `fast` returns results in ~1 second. `deep` enables spell correction, enhanced analysis, and more sources in ~2–3 seconds.",
+            "description": "Search depth. `fast` returns results in ~1 second. `deep` searches from multiple angles for higher-quality results, with spell correction, in ~2–3 seconds.",
             "schema": {
               "type": "string",
               "enum": ["fast", "deep"],

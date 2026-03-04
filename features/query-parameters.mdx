@@ -21,7 +21,7 @@ Most integrations only need `q`, `limit`, and `depth`. The filtering and output 
 | `q` | string | **required** | Search query string. Also accepts a JSON array of up to 5 queries (e.g., `["query one", "query two"]`). |
 | `limit` | integer | `10` | Maximum results to return (1–100) |
 | `offset` | integer | `0` | Results to skip for pagination |
-| `depth` | string | `fast` | Search mode: `fast` or `deep` |
+| `depth` | string | `fast` | Search mode: `fast` (single search, ~1s) or `deep` (searches from multiple angles for higher-quality results, ~2–3s) |
 | `intent` | string | auto | Force search intent. See [intent values](#intent-values) below. |
 
 ### Intent values
