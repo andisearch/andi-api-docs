@@ -138,7 +138,18 @@
             "linkedin": "https://linkedin.com/company/andisearch",
             "github": "https://github.com/andisearch",
             "discord": "https://discord.gg/J2NJ2rj7ax"
-        }
+        },
+        "links": [
+            {
+                "header": "Resources",
+                "items": [
+                    {
+                        "label": "System Status",
+                        "href": "https://status.andiai.com"
+                    }
+                ]
+            }
+        ]
     },
     "seo": {
         "metatags": {
