@@ -24,6 +24,7 @@ The `results_type` field tells you the shape of the response. Use it to determin
 | `title` | string | Yes | Title summarizing the search results |
 | `results` | array | Yes | Search results |
 | `metrics` | object | Yes | Search performance metrics |
+| `safeSearch` | object | Yes | Echo of safe-search state: `{requested, applied}`. Use this to confirm your `safe` parameter was honored. |
 | `correctedQuery` | string | No | Spell-corrected query (deep search only, when a correction is made) |
 | `related_searches` | array | No | Related search suggestions |
 | `topics` | array | No | Related topics |
@@ -57,6 +58,7 @@ Each result in the `results` array has this structure:
 | `image` | string | No | Preview image URL |
 | `snippet` | string | No | Query-relevant text excerpt (distinct from `desc`) |
 | `answer` | string | No | Inline answer for instant answer results |
+| `contentSafety` | object | No | Per-result safety classification: `{rating, safeSearchApplied}` where `rating` is `"safe"`, `"unsafe"`, or `"unknown"` and `safeSearchApplied` is a boolean. |
 | `extracts` | array | No | Text extracts from the page, when available (when `extracts=true`) |
 | `contentType` | string | No | Content type (when `metadata=full`) |
 | `reader` | object | No | Extracted page content (when `metadata=full`) |

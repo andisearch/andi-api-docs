@@ -358,6 +358,127 @@
             }
           }
         }
+      },
+      "post": {
+        "operationId": "searchPost",
+        "summary": "Search the web (JSON body)",
+        "description": "Same contract as `GET /api/v1/search`, but accepts parameters as a JSON body. Preferred for location-bearing requests because GET-style location encoding is awkward and keeps `latitude`/`longitude` out of HTTP access logs. All GET query parameters are accepted as body fields, plus an optional `location` object.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["q"],
+                "properties": {
+                  "q": {
+                    "type": "string",
+                    "description": "Search query string. Same semantics as the GET `q` parameter."
+                  },
+                  "limit": { "type": "integer", "default": 10, "minimum": 1, "maximum": 100 },
+                  "offset": { "type": "integer", "default": 0, "minimum": 0 },
+                  "depth": { "type": "string", "enum": ["fast", "deep"], "default": "fast" },
+                  "intent": { "type": "string" },
+                  "format": { "type": "string", "enum": ["json", "context"], "default": "json" },
+                  "metadata": { "type": "string", "enum": ["basic", "full"], "default": "basic" },
+                  "extracts": { "type": "boolean", "default": false },
+                  "safe": { "type": "string", "enum": ["off", "moderate", "strict"], "default": "off" },
+                  "country": { "type": "string", "default": "US" },
+                  "language": { "type": "string", "default": "en" },
+                  "units": { "type": "string", "enum": ["metric", "imperial"] },
+                  "noCache": { "type": "boolean", "default": false },
+                  "dateRange": { "type": "string", "enum": ["day", "week", "month", "year", "24h", "7d", "30d", "90d", "1y"] },
+                  "dateFrom": { "type": "string", "format": "date" },
+                  "dateTo": { "type": "string", "format": "date" },
+                  "includeDomains": { "type": "string" },
+                  "excludeDomains": { "type": "string" },
+                  "includeTerms": { "type": "string" },
+                  "excludeTerms": { "type": "string" },
+                  "parseOperators": { "type": "boolean", "default": true },
+                  "linkFormat": { "type": "string", "enum": ["link", "url"], "default": "link" },
+                  "filetype": { "type": "string" },
+                  "intitle": { "type": "string" },
+                  "inurl": { "type": "string" },
+                  "intext": { "type": "string" },
+                  "location": {
+                    "type": "object",
+                    "description": "Optional location context. Sent in the body to keep coordinates out of HTTP access logs.",
+                    "properties": {
+                      "city": { "type": "string" },
+                      "region": { "type": "string" },
+                      "country": { "type": "string", "description": "Two-letter ISO 3166-1 country code." },
+                      "lat": { "type": "number", "description": "Latitude in decimal degrees." },
+                      "lng": { "type": "number", "description": "Longitude in decimal degrees." }
+                    }
+                  }
+                }
+              },
+              "example": {
+                "q": "best italian restaurants near me",
+                "limit": 10,
+                "location": {
+                  "city": "San Francisco",
+                  "region": "California",
+                  "country": "US",
+                  "lat": 37.7794,
+                  "lng": -122.4176
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Search results",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SearchResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request — missing or invalid parameters",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized — missing or invalid API key",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          },
+          "402": {
+            "description": "Insufficient credits — account balance depleted",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
       }
     }
   },

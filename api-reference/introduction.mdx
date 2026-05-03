@@ -32,6 +32,7 @@ Get an API key from the [API Console](https://console.andiai.com).
 | Method | Path | Description |
 |---|---|---|
 | `GET` | `/api/v1/search` | Search the web |
+| `POST` | `/api/v1/search` | Search the web with parameters in a JSON body. Preferred for location-bearing requests because GET-style location encoding is awkward and keeps `latitude`/`longitude` out of access logs. |
 
 The endpoint supports two search modes (`fast` and `deep`), multiple output formats, and filtering by domain, date, content type, and more.
 
