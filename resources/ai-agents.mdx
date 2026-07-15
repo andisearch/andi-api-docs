@@ -32,15 +32,25 @@ Use Andi as your agent's web search and page fetch tool over the [Model Context 
 
 **Authentication:** Pass your API key in the `x-api-key` header. Get a key from the [API Console](https://console.andiai.com/signup).
 
+Your API key is account-level, not project-level, so a system-wide install works everywhere at once. Each client below notes how to choose between project and system-wide scope.
+
 ### Claude Code
+
+For the current project:
 
 ```bash
 claude mcp add --transport http andi https://api.andiai.com/mcp --header "x-api-key: YOUR_API_KEY"
 ```
 
+System-wide, for all projects:
+
+```bash
+claude mcp add --scope user --transport http andi https://api.andiai.com/mcp --header "x-api-key: YOUR_API_KEY"
+```
+
 ### Cursor
 
-Add to your `.cursor/mcp.json`:
+Add to `.cursor/mcp.json` in your project, or to `~/.cursor/mcp.json` for all projects:
 
 ```json
 {
@@ -94,7 +104,7 @@ Add to your VS Code settings (JSON):
 
 ### Codex CLI
 
-Add to `~/.codex/config.toml` (or a project-scoped `.codex/config.toml`), with `ANDI_API_KEY` exported in your shell:
+Add to `~/.codex/config.toml` (system-wide — Codex config applies to all projects), with `ANDI_API_KEY` exported in your shell:
 
 ```toml
 [mcp_servers.andi]
