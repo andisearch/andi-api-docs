@@ -1,6 +1,6 @@
 ---
 title: Fast mode
-description: Default search mode optimized for speed, returning results in ~1 second.
+description: Search mode optimized for speed, returning results in ~1 second.
 icon: bolt
 keywords:
   - fast search API
@@ -10,7 +10,7 @@ keywords:
   - searchMode fast
 ---
 
-Fast mode is the default. It returns results in about 1 second, making it the right choice for real-time applications and high-volume workloads.
+Fast mode returns results in about 1 second, making it the right choice for real-time applications and high-volume workloads.
 
 <CodeGroup>
 
@@ -45,7 +45,7 @@ data.results.forEach(r => console.log(`${r.title} — ${r.source}`));
 
 </CodeGroup>
 
-Fast mode is the default — you get the same behavior by omitting `searchMode` entirely, or by using the legacy `depth=fast` parameter.
+When you omit `searchMode`, the API defaults to `auto` — which may select fast mode for simple queries. You can also use the legacy `depth=fast` parameter. See [search modes](/search/search-modes) for the full set.
 
 ## When to use fast mode
 
@@ -58,9 +58,9 @@ Fast mode is the default — you get the same behavior by omitting `searchMode` 
 
 ```json
 {
-  "results_type": "news",
+  "results_type": "News",
   "answer": "",
-  "type": "news",
+  "type": "News",
   "title": "latest AI news",
   "results": [
     {
@@ -68,16 +68,19 @@ Fast mode is the default — you get the same behavior by omitting `searchMode` 
       "link": "https://example.com/ai-news",
       "desc": "A roundup of the latest developments in artificial intelligence...",
       "source": "example.com",
-      "type": "news"
+      "date": "2026-07-14T10:00:00.000Z"
     }
   ],
   "metrics": {
     "query": "latest AI news",
     "intent": "LatestNewsIntent",
+    "timestamp": "2026-07-14T21:30:00.000Z",
     "duration": 890,
-    "cost_dollars": 0.0031,
+    "queries_executed": 1,
+    "api_requests_count": 1,
     "results_returned": 10,
-    "total_results_found": 50
+    "total_results_found": 50,
+    "cost_dollars": 0.0031
   }
 }
 ```
@@ -88,7 +91,7 @@ Fast mode is the default — you get the same behavior by omitting `searchMode` 
 data = response.json()
 
 # Check what type of results came back
-print(data["results_type"])  # e.g., "news", "search", "images"
+print(data["results_type"])  # e.g., "News", "Search", "Weather"
 
 # Access results
 for result in data["results"]:

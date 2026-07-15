@@ -833,7 +833,7 @@
             "description": "Maximum content characters to return (default 200000).",
             "schema": {
               "type": "integer",
-              "minimum": 500
+              "minimum": 1
             }
           },
           {
@@ -1071,14 +1071,14 @@
               "$ref": "#/components/schemas/SearchResult"
             }
           },
-          "socials": {
+          "social": {
             "type": "array",
             "description": "Social media results. Present for social-related queries.",
             "items": {
               "$ref": "#/components/schemas/SearchResult"
             }
           },
-          "academics": {
+          "academic": {
             "type": "array",
             "description": "Academic results. Present for scholarly queries.",
             "items": {

@@ -150,7 +150,7 @@ response = requests.get(
     "https://api.andiai.com/api/v1/search",
     params={
         "q": "what causes aurora borealis",
-        "depth": "deep",
+        "searchMode": "deep",
         "extracts": "true",
         "limit": 10,
     },
@@ -159,7 +159,7 @@ response = requests.get(
 ```
 
 <Note>
-Deep search takes ~2-3 seconds vs ~1 second for fast search. Use it when answer quality matters more than latency.
+Deep mode takes ~2-3 seconds vs ~1 second for fast mode. Use it when answer quality matters more than latency.
 </Note>
 
 ## Tips for better RAG results

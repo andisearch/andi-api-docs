@@ -14,20 +14,20 @@ keywords:
 The API returns JSON by default. The `format=context` option returns markdown with YAML frontmatter instead — see [context format](#context-format) below.
 
 <Tip>
-The `results_type` field tells you the shape of the response. Use it to determine which arrays and objects are present — for example, `results_type: "weather"` means a `weather` object is included.
+The `results_type` field tells you the shape of the response. Use it to determine which arrays and objects are present — for example, `results_type: "Weather"` means a `weather` object is included.
 </Tip>
 
 ## Top-level fields
 
 | Field | Type | Always present | Description |
 |---|---|---|---|
-| `results_type` | string | Yes | Category of results (e.g., `search`, `news`, `images`) |
+| `results_type` | string | Yes | Category of results (e.g., `Search`, `News`, `Weather`, `Entity`, `Calculator`) |
 | `answer` | string | Yes | Generated answer for the query (may be empty) |
 | `type` | string | Yes | Same as `results_type` |
 | `title` | string | Yes | Title summarizing the search results |
 | `results` | array | Yes | Search results |
 | `metrics` | object | Yes | Search performance and cost metrics |
-| `safeSearch` | object | Yes | Echo of safe-search state: `{requested, applied}`. Use this to confirm your `safe` parameter was honored. |
+| `safeSearch` | object | No | Echo of safe-search state: `{requested, applied}`. Present on cache misses. Use this to confirm your `safe` parameter was honored. |
 | `correctedQuery` | string | No | Spell-corrected query (deep mode only, when a correction is made) |
 | `related_searches` | array | No | Related search suggestions |
 | `topics` | array | No | Related topics |
@@ -43,8 +43,8 @@ Depending on the query intent, the response may include additional arrays alongs
 | `news` | News intent queries |
 | `places` | Location/business queries |
 | `profiles` | People-related queries |
-| `socials` | Social media queries |
-| `academics` | Scholarly queries |
+| `social` | Social media queries |
+| `academic` | Scholarly queries |
 
 ## Search results
 
@@ -56,15 +56,23 @@ Each result in the `results` array has this structure:
 | `link` | string | Yes | Page URL (returned as `url` when `linkFormat=url`) |
 | `desc` | string | Yes | Page description or summary |
 | `source` | string | Yes | Domain name |
-| `type` | string | No | Result type when classified (see [result types](#result-types)) |
 | `date` | string | No | Publication date |
-| `image` | string | No | Preview image URL |
 | `snippet` | string | No | Query-relevant text excerpt (distinct from `desc`) |
 | `answer` | string | No | Inline answer for instant answer results |
-| `contentSafety` | object | No | Per-result safety classification: `{rating, safeSearchApplied}` where `rating` is `"safe"`, `"unsafe"`, or `"unknown"` and `safeSearchApplied` is a boolean. |
-| `extracts` | array | No | Text extracts from the page, when available (when `extracts=true`) |
-| `contentType` | string | No | Content type (when `metadata=full`) |
-| `reader` | object | No | Extracted page content (when `metadata=full`) |
+| `extracts` | array | No | Text extracts from the page (when `extracts=true`) |
+
+### Fields added by `metadata=full`
+
+These fields appear on results when you pass `metadata=full`. They are not included in the default `metadata=basic` response.
+
+| Field | Type | Description |
+|---|---|---|
+| `type` | string | Result type when classified (see [result types](#result-types)) |
+| `image` | string | Preview image URL |
+| `contentType` | string | Schema.org content type (e.g., `Article`, `NewsArticle`) |
+| `contentSafety` | object | Safety classification: `{rating, safeSearchApplied}` where `rating` is `"safe"`, `"unsafe"`, or `"unknown"` |
+| `reader` | object | Extracted page content and metadata |
+| `bang` | string | Bang shortcut for the result domain |
 
 ### Accessing key fields
 
@@ -91,6 +99,7 @@ The `type` field indicates the kind of result:
 | Type | Description |
 |---|---|
 | `website` | Standard web page |
+| `blog` | Blog post |
 | `news` | News article |
 | `video` | Video content |
 | `image` | Image content |
@@ -113,9 +122,9 @@ Queries about weather return a `weather` object:
 
 ```json
 {
-  "results_type": "weather",
+  "results_type": "Weather",
   "answer": "",
-  "type": "weather",
+  "type": "Weather",
   "title": "Weather in San Francisco",
   "results": [],
   "weather": {
@@ -162,9 +171,9 @@ Mathematical queries return a `calculation` object:
 
 ```json
 {
-  "results_type": "computation",
+  "results_type": "Calculator",
   "answer": "",
-  "type": "computation",
+  "type": "Calculator",
   "title": "150 * 1.08",
   "results": [],
   "calculation": {
@@ -180,9 +189,9 @@ Image queries return an `images` array with thumbnail and dimension data:
 
 ```json
 {
-  "results_type": "images",
+  "results_type": "Search",
   "answer": "",
-  "type": "images",
+  "type": "Search",
   "title": "Mountain landscape images",
   "results": [],
   "images": [
@@ -242,15 +251,15 @@ The response always includes a `metrics` object with performance and billing dat
 {
   "results": ["..."],
   "metrics": {
-    "query": "machine learning",
-    "intent": "FallbackSearchIntent",
-    "timestamp": "2025-03-15T14:00:01Z",
-    "duration": 234,
-    "cost_dollars": 0.0043,
+    "query": "quantum computing",
+    "intent": "InstantAnswerIntent",
+    "timestamp": "2026-07-15T01:29:20.468Z",
+    "duration": 1713,
     "queries_executed": 1,
-    "api_requests_count": 3,
-    "results_returned": 10,
-    "total_results_found": 42
+    "api_requests_count": 1,
+    "results_returned": 3,
+    "total_results_found": 71800116,
+    "cost_dollars": 0.029886
   }
 }
 ```
@@ -322,7 +331,6 @@ Each result renders as an `<article>` block with its own frontmatter:
 title: "Climate Change Effects on Global Agriculture"
 url: https://example.com/climate-agriculture
 date: 2026-06-10
-source: example.com
 author: Dr. Sarah Chen
 ---
 
@@ -336,7 +344,7 @@ zones over the past decade.
 </article>
 ```
 
-With `metadata=full`, each article's frontmatter adds `domain`, `publisher`, `type`, `content_type`, `lang`, `word_count`, `image`, `keywords`, and `summary` when available.
+A `source` line appears in the frontmatter only when the display source differs from the domain in the `<article>` tag. With `metadata=full`, each article's frontmatter adds `domain`, `publisher`, `type`, `content_type`, `lang`, `word_count`, `image`, `keywords`, and `summary` when available.
 
 ### Extracts in context format
 

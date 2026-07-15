@@ -1,13 +1,21 @@
 ---
 title: Quickstart
-description: Make your first Andi AI Search API call in minutes.
+description: Set up Andi web search in your agent or application. One-line agent install or manual API key setup.
 keywords:
   - search API quickstart
   - web search API tutorial
   - first API call
+  - MCP server setup
+  - agent install
 ---
 
-<Info>You need an API key to follow this guide. Get one from the [API Console](https://console.andiai.com).</Info>
+## Agent quick-start
+
+<Snippet file="agent-install.mdx" />
+
+## Manual setup
+
+<Info>You need an API key to follow these steps. Get one from the [API Console](https://console.andiai.com).</Info>
 
 <Steps>
 
@@ -62,26 +70,28 @@ The API returns a JSON object with top-level fields and a `results` array. Each 
 
 ```json
 {
-  "results_type": "search",
+  "results_type": "Search",
   "answer": "",
-  "type": "search",
+  "type": "Search",
   "title": "what is RAG",
   "results": [
     {
       "title": "Retrieval-Augmented Generation (RAG) Explained",
       "link": "https://example.com/rag-explained",
       "desc": "RAG combines a retrieval system with a language model to generate responses grounded in retrieved documents.",
-      "source": "example.com",
-      "type": "website"
+      "source": "example.com"
     }
   ],
   "metrics": {
     "query": "what is RAG",
     "intent": "FallbackSearchIntent",
-    "duration": 234,
-    "cost_dollars": 0.0031,
+    "timestamp": "2026-07-14T21:30:00.000Z",
+    "duration": 1240,
+    "queries_executed": 1,
+    "api_requests_count": 1,
     "results_returned": 10,
-    "total_results_found": 42
+    "total_results_found": 42,
+    "cost_dollars": 0.0031
   }
 }
 ```

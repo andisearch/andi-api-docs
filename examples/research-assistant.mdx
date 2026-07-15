@@ -19,7 +19,7 @@ This example builds a research assistant that searches multiple related queries,
 # Multi-query search with a JSON array
 curl -G -s "https://api.andiai.com/api/v1/search" \
   --data-urlencode 'q=["quantum computing applications", "quantum computing challenges", "quantum computing 2025"]' \
-  -d "depth=deep" \
+  -d "searchMode=deep" \
   -d "limit=10" \
   -H "x-api-key: $ANDI_API_KEY" | jq '{
     correctedQuery,
@@ -35,7 +35,7 @@ import requests
 api_key = os.environ["ANDI_API_KEY"]
 
 
-def research(queries: list[str], depth: str = "deep", limit: int = 10) -> dict:
+def research(queries: list[str], search_mode: str = "deep", limit: int = 10) -> dict:
     """Run multiple search queries and aggregate results."""
     all_results = []
     seen_urls = set()
@@ -46,7 +46,7 @@ def research(queries: list[str], depth: str = "deep", limit: int = 10) -> dict:
             "https://api.andiai.com/api/v1/search",
             params={
                 "q": query,
-                "depth": depth,
+                "searchMode": search_mode,
                 "limit": limit,
                 "extracts": "true",
             },
@@ -96,7 +96,7 @@ for result in research_data["results"][:10]:
 ```javascript JavaScript
 const apiKey = process.env.ANDI_API_KEY;
 
-async function research(queries, depth = "deep", limit = 10) {
+async function research(queries, searchMode = "deep", limit = 10) {
   const allResults = [];
   const seenUrls = new Set();
   const correctedQueries = {};
@@ -104,7 +104,7 @@ async function research(queries, depth = "deep", limit = 10) {
   for (const query of queries) {
     const url = new URL("https://api.andiai.com/api/v1/search");
     url.searchParams.set("q", query);
-    url.searchParams.set("depth", depth);
+    url.searchParams.set("searchMode", searchMode);
     url.searchParams.set("limit", String(limit));
     url.searchParams.set("extracts", "true");
 
@@ -166,7 +166,7 @@ data.results.slice(0, 10).forEach((r) => {
 ## How it works
 
 1. **Multiple queries** — search the same topic from different angles to get broader coverage
-2. **Deep search** — `depth=deep` enables spell correction and extended source coverage
+2. **Deep search** — `searchMode=deep` enables spell correction and extended source coverage
 3. **Deduplication** — track URLs already seen to avoid duplicate results across queries
 4. **Spell correction tracking** — `correctedQuery` shows when deep search fixed a typo
 
@@ -185,7 +185,7 @@ response = requests.get(
             "quantum computing challenges",
             "quantum computing 2025",
         ]),
-        "depth": "deep",
+        "searchMode": "deep",
         "limit": 10,
     },
     headers={"x-api-key": api_key},
@@ -205,7 +205,7 @@ Focus research on academic or authoritative sources:
 ```python
 research_data = research(
     queries=["quantum computing applications"],
-    depth="deep",
+    search_mode="deep",
     limit=20,
 )
 
@@ -223,7 +223,7 @@ response = requests.get(
     "https://api.andiai.com/api/v1/search",
     params={
         "q": "quantum computing",
-        "depth": "deep",
+        "searchMode": "deep",
         "includeDomains": "arxiv.org,nature.com,ieee.org",
     },
     headers={"x-api-key": api_key},

@@ -76,27 +76,29 @@ You can also use the legacy `depth=deep` parameter, which has the same effect.
 
 ```json
 {
-  "results_type": "search",
+  "results_type": "Search",
   "answer": "",
-  "type": "search",
+  "type": "Search",
   "title": "quantum computing applications",
   "results": [
     {
       "title": "Quantum Computing: Current Applications and Future Potential",
       "link": "https://example.com/quantum-applications",
       "desc": "Quantum computing is being applied in cryptography, drug discovery, and optimization problems...",
-      "source": "example.com",
-      "type": "website"
+      "source": "example.com"
     }
   ],
   "correctedQuery": "quantum computing applications",
   "metrics": {
     "query": "quantum computing applications",
     "intent": "FallbackSearchIntent",
+    "timestamp": "2026-07-14T21:30:00.000Z",
     "duration": 2340,
-    "cost_dollars": 0.0089,
+    "queries_executed": 1,
+    "api_requests_count": 1,
     "results_returned": 10,
-    "total_results_found": 85
+    "total_results_found": 85,
+    "cost_dollars": 0.0089
   }
 }
 ```
