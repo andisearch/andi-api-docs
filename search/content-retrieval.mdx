@@ -1,40 +1,145 @@
 ---
 title: Content retrieval
-description: Full HTML content retrieval from search results — coming soon.
+description: Fetch and extract clean content from any web page with the /api/v1/fetch endpoint.
 icon: file-lines
-noindex: true
 keywords:
   - content retrieval API
+  - fetch endpoint
   - full text extraction
-  - web scraping API
+  - web page content API
+  - page fetch
 ---
 
-<Info>
-Content retrieval is coming soon. This page will be updated when the feature is available.
-</Info>
-
-Content retrieval will allow you to fetch the full HTML content of pages returned in search results. This is useful for:
-
-- Extracting full article text for RAG pipelines
-- Building datasets from web sources
-- Deep content analysis beyond snippets
-
-## Available now
-
-While content retrieval is in development, you can use the `extracts` parameter to get text extracts from result pages (returned as an array on each result, when available):
+The fetch endpoint extracts clean, structured content from a web page. You get the page title, description, full text, and metadata — without writing a scraper. It returns JSON by default, or LLM-ready markdown with `format=context`.
 
 ```bash
-curl "https://search-api.andisearch.com/api/v1/search?q=your+query&extracts=true" \
+curl "https://api.andiai.com/api/v1/fetch?url=https://example.com/article" \
   -H "x-api-key: YOUR_API_KEY"
 ```
+
+## Parameters
+
+| Parameter | Type | Default | Description |
+|---|---|---|---|
+| `url` | string | **required** | Absolute URL to fetch (http or https) |
+| `format` | string | `json` | `json` or `context` (markdown with YAML frontmatter) |
+| `maxContentLength` | integer | 200000 | Maximum content length in characters. You can lower this, not raise it. |
+| `query` | string | — | When set, the response includes `query_extracts` and `query_snippet` scoped to this query. |
+
+## JSON response
+
+```json
+{
+  "url": "https://example.com/article",
+  "title": "Understanding Retrieval-Augmented Generation",
+  "description": "RAG combines retrieval with generation for grounded LLM responses.",
+  "content": "Retrieval-Augmented Generation (RAG) is a technique that...",
+  "markdown": "# Understanding Retrieval-Augmented Generation\n\nRAG is a technique...",
+  "extracts": [
+    "RAG retrieves relevant documents from a knowledge base before generating a response.",
+    "This grounds the model's output in factual, up-to-date information."
+  ],
+  "snippet": "RAG combines retrieval with generation for grounded LLM responses.",
+  "author": "Jane Smith",
+  "date": "2026-06-15",
+  "site_name": "Example Blog",
+  "image": "https://example.com/images/rag-diagram.png",
+  "lang": "en",
+  "word_count": 1850,
+  "truncated": false,
+  "metrics": {
+    "duration_ms": 1240,
+    "cost_dollars": 0.001
+  }
+}
+```
+
+Fields like `author`, `date`, `image`, and `site_name` appear when the page provides them.
+
+## Context format
+
+With `format=context`, the response is markdown with YAML frontmatter — ready to pass into an LLM context window:
+
+```bash
+curl "https://api.andiai.com/api/v1/fetch?url=https://example.com/article&format=context" \
+  -H "x-api-key: YOUR_API_KEY"
+```
+
+```yaml
+---
+title: Understanding Retrieval-Augmented Generation
+url: https://example.com/article
+description: RAG combines retrieval with generation for grounded LLM responses.
+author: Jane Smith
+date_published: 2026-06-15
+source: example.com
+lang: en
+word_count: 1850
+cost_dollars: 0.001
+retrieved_at: 2026-07-14T21:30:00Z
+---
+
+Retrieval-Augmented Generation (RAG) is a technique that...
+```
+
+## Using the `query` parameter
+
+Pass a `query` to get passage-level extracts scoped to a specific question:
+
+```bash
+curl "https://api.andiai.com/api/v1/fetch?url=https://example.com/article&query=how+does+RAG+reduce+hallucination" \
+  -H "x-api-key: YOUR_API_KEY"
+```
+
+The response includes `query_extracts` (passages relevant to the query), `query_snippet` (a query-focused summary), and `query_hash`.
+
+## Error handling
+
+The fetch endpoint uses two distinct error codes for page-level failures:
+
+| Status | Meaning | What to do |
+|---|---|---|
+| **503** | Page is still being retrieved, or a transient failure occurred | Retry after the `Retry-After` header value |
+| **422** | Page was reached but content could not be extracted | Do not retry — the page is not extractable |
+
+Both 422 and 503 responses are **not billed**. You only pay for successful extractions.
+
+Other errors (400 for a missing or invalid URL, 401, 402, 429) follow the same patterns as the search endpoint — see [error handling](/resources/error-handling).
+
+## Pricing
+
+Fetch calls are billed at a flat $0.001 base per request, plus $0.05 per 1M tokens of extracted content. Failed fetches (422 and 503) are free.
+
+The billed amount is returned in `metrics.cost_dollars` (JSON) or `cost_dollars` in the frontmatter (`format=context`).
+
+## Search extracts as an alternative
+
+If you already have search results and want passage-level text without fetching each page, use `extracts=true` on the search endpoint instead. This returns text extracts inline on each result at no additional cost:
+
+```bash
+curl "https://api.andiai.com/api/v1/search?q=how+does+RAG+work&extracts=true" \
+  -H "x-api-key: YOUR_API_KEY"
+```
+
+The fetch endpoint is for when you need the full page content, or when you want to retrieve a specific URL that may not appear in search results.
+
+## MCP tool
+
+The `andi_fetch_url` MCP tool wraps this endpoint. See [Build with AI agents](/resources/ai-agents) for setup instructions.
 
 ## Next steps
 
 <CardGroup cols={2}>
-  <Card title="Fast search" icon="bolt" href="/search/fast-search">
-    Default search mode for real-time applications.
+  <Card title="Search modes" icon="gauge-high" href="/search/search-modes">
+    Control speed, depth, and cost of each search.
   </Card>
   <Card title="Query parameters" icon="sliders" href="/features/query-parameters">
     Full parameter reference including `extracts`.
+  </Card>
+  <Card title="Response format" icon="brackets-curly" href="/features/response-format">
+    JSON and context format output structure.
+  </Card>
+  <Card title="Build with AI agents" icon="robot" href="/resources/ai-agents">
+    MCP server and agent integration.
   </Card>
 </CardGroup>

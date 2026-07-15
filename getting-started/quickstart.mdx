@@ -24,7 +24,7 @@ Send a search query using the `x-api-key` header:
 <CodeGroup>
 
 ```bash curl
-curl "https://search-api.andisearch.com/api/v1/search?q=what+is+RAG" \
+curl "https://api.andiai.com/api/v1/search?q=what+is+RAG" \
   -H "x-api-key: YOUR_API_KEY"
 ```
 
@@ -32,7 +32,7 @@ curl "https://search-api.andisearch.com/api/v1/search?q=what+is+RAG" \
 import requests
 
 response = requests.get(
-    "https://search-api.andisearch.com/api/v1/search",
+    "https://api.andiai.com/api/v1/search",
     params={"q": "what is RAG"},
     headers={"x-api-key": "YOUR_API_KEY"}
 )
@@ -44,7 +44,7 @@ for result in data["results"]:
 
 ```javascript JavaScript
 const response = await fetch(
-  "https://search-api.andisearch.com/api/v1/search?q=what+is+RAG",
+  "https://api.andiai.com/api/v1/search?q=what+is+RAG",
   { headers: { "x-api-key": "YOUR_API_KEY" } }
 );
 
@@ -79,11 +79,14 @@ The API returns a JSON object with top-level fields and a `results` array. Each 
     "query": "what is RAG",
     "intent": "FallbackSearchIntent",
     "duration": 234,
+    "cost_dollars": 0.0031,
     "results_returned": 10,
     "total_results_found": 42
   }
 }
 ```
+
+The `metrics.cost_dollars` field shows the amount charged for this request in USD.
 
 </Step>
 
@@ -92,11 +95,11 @@ The API returns a JSON object with top-level fields and a `results` array. Each 
 ## Next steps
 
 <CardGroup cols={2}>
-  <Card title="Fast search" icon="bolt" href="/search/fast-search">
-    Default search mode for real-time applications.
+  <Card title="Search modes" icon="gauge-high" href="/search/search-modes">
+    Control speed, depth, and cost with searchMode.
   </Card>
-  <Card title="Deep search" icon="microscope" href="/search/deep-search">
-    Enhanced search with spell correction and more sources.
+  <Card title="Build with AI agents" icon="robot" href="/resources/ai-agents">
+    Connect via MCP for Claude Code, Cursor, and other tools.
   </Card>
   <Card title="Query parameters" icon="sliders" href="/features/query-parameters">
     Full parameter reference for the search endpoint.

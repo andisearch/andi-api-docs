@@ -2,13 +2,17 @@
   "openapi": "3.1.0",
   "info": {
     "title": "Andi AI Search API",
-    "version": "1.0.0",
-    "description": "Web search API with fast and deep search modes. Returns structured search results from billions of indexed pages."
+    "version": "1.7.0",
+    "description": "Web search and page-fetch API for people and AI agents. `GET`/`POST /api/v1/search` returns structured results with query operators, domain and date filtering, and multiple output formats. `GET /api/v1/fetch` retrieves and extracts a single page. Both endpoints support `format=context`, which returns markdown suited to language models. The `searchMode` parameter (`auto` default, plus `fast`, `low-cost`, `deep`, and `exhaustive`) controls search effort and latency; requests that use `searchMode` are billed on outcome-based pricing, reported per call in `metrics.cost_dollars`. `depth` (`fast`/`deep`) is a legacy alias kept for backward compatibility."
   },
   "servers": [
     {
-      "url": "https://search-api.andisearch.com",
+      "url": "https://api.andiai.com",
       "description": "Production"
+    },
+    {
+      "url": "https://search-api.andisearch.com",
+      "description": "Legacy (same service)"
     }
   ],
   "security": [
@@ -21,7 +25,7 @@
       "get": {
         "operationId": "search",
         "summary": "Search the web",
-        "description": "Performs a web search and returns structured results. Supports fast (default) and deep search modes, domain and date filtering, query operators, and multiple output formats.",
+        "description": "Performs a web search and returns structured results. Supports the `searchMode` dial (auto, fast, low-cost, deep, exhaustive), domain and date filtering, query operators, and multiple output formats.",
         "parameters": [
           {
             "name": "q",
@@ -55,13 +59,48 @@
             }
           },
           {
-            "name": "depth",
+            "name": "searchMode",
             "in": "query",
-            "description": "Search depth. `fast` returns results in ~1 second. `deep` searches from multiple angles for higher-quality results, with spell correction, in ~2–3 seconds.",
+            "description": "Search mode dial. `auto` (default) selects a mode automatically based on the query. `fast` returns results in about 1 second. `low-cost` limits engine usage for budget-constrained requests. `deep` searches from multiple angles with spell correction in about 2–3 seconds. `exhaustive` runs multi-round retrieval for the most complete results, up to about 15 seconds. Takes precedence over `depth` when both are set. Requests that use `searchMode` are billed on outcome-based pricing (see `metrics.cost_dollars`).",
             "schema": {
               "type": "string",
-              "enum": ["fast", "deep"],
+              "enum": [
+                "auto",
+                "fast",
+                "low-cost",
+                "deep",
+                "exhaustive"
+              ],
+              "default": "auto"
+            }
+          },
+          {
+            "name": "depth",
+            "in": "query",
+            "description": "Legacy search depth parameter, kept for backward compatibility. `fast` returns results in ~1 second. `deep` searches from multiple angles for higher-quality results, with spell correction, in ~2–3 seconds. `searchMode` is the current parameter and takes precedence when both are set. A bare `depth` value with no `searchMode` is billed at a fixed legacy rate instead of outcome-based pricing.",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "fast",
+                "deep"
+              ],
               "default": "fast"
+            }
+          },
+          {
+            "name": "reranker",
+            "in": "query",
+            "description": "Semantic reranker size hint. Larger tiers apply more thorough relevance scoring but need a deeper `searchMode` and may be clamped by the request's time and cost budget (for example, `xl` needs `deep` or `exhaustive`). `auto` (default) selects a tier automatically based on the query and search mode.",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "auto",
+                "small",
+                "medium",
+                "large",
+                "xl"
+              ],
+              "default": "auto"
             }
           },
           {
@@ -72,15 +111,42 @@
               "type": "string"
             },
             "examples": {
-              "news": { "value": "news", "summary": "Latest news results" },
-              "video": { "value": "video", "summary": "Video search results" },
-              "images": { "value": "images", "summary": "Image search results" },
-              "weather": { "value": "weather", "summary": "Weather data" },
-              "wiki": { "value": "wiki", "summary": "Wikipedia/knowledge results" },
-              "code": { "value": "code", "summary": "Programming-related results" },
-              "recipe": { "value": "recipe", "summary": "Recipe results" },
-              "place": { "value": "place", "summary": "Business/place results" },
-              "time": { "value": "time", "summary": "Time query results" }
+              "news": {
+                "value": "news",
+                "summary": "Latest news results"
+              },
+              "video": {
+                "value": "video",
+                "summary": "Video search results"
+              },
+              "images": {
+                "value": "images",
+                "summary": "Image search results"
+              },
+              "weather": {
+                "value": "weather",
+                "summary": "Weather data"
+              },
+              "wiki": {
+                "value": "wiki",
+                "summary": "Wikipedia/knowledge results"
+              },
+              "code": {
+                "value": "code",
+                "summary": "Programming-related results"
+              },
+              "recipe": {
+                "value": "recipe",
+                "summary": "Recipe results"
+              },
+              "place": {
+                "value": "place",
+                "summary": "Business/place results"
+              },
+              "time": {
+                "value": "time",
+                "summary": "Time query results"
+              }
             }
           },
           {
@@ -89,7 +155,10 @@
             "description": "Response format. `json` returns a JSON object. `context` returns results as markdown text, suitable for passing to language models.",
             "schema": {
               "type": "string",
-              "enum": ["json", "context"],
+              "enum": [
+                "json",
+                "context"
+              ],
               "default": "json"
             }
           },
@@ -99,7 +168,10 @@
             "description": "Level of metadata to include. `basic` includes standard search metrics. `full` includes extended metadata with content type details and reader data on results.",
             "schema": {
               "type": "string",
-              "enum": ["basic", "full"],
+              "enum": [
+                "basic",
+                "full"
+              ],
               "default": "basic"
             }
           },
@@ -113,12 +185,33 @@
             }
           },
           {
+            "name": "enrichContent",
+            "in": "query",
+            "description": "Fetch and include full page content for results, beyond the standard description and snippet. Increases response time; the time budget scales with `searchMode` (more time is allotted for `deep` and `exhaustive`).",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
+          },
+          {
+            "name": "maxContentLength",
+            "in": "query",
+            "description": "Maximum number of characters of enriched content to return per result. Only applies when `enrichContent` is true.",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
             "name": "safe",
             "in": "query",
             "description": "Safe search filtering level. `off` disables filtering, `moderate` filters most explicit content, `strict` applies maximum filtering.",
             "schema": {
               "type": "string",
-              "enum": ["off", "moderate", "strict"],
+              "enum": [
+                "off",
+                "moderate",
+                "strict"
+              ],
               "default": "off"
             }
           },
@@ -131,6 +224,15 @@
               "default": "US"
             },
             "example": "US"
+          },
+          {
+            "name": "sourceCountry",
+            "in": "query",
+            "description": "Two-letter ISO 3166-1 country code to restrict results to sources from this country. Unlike `country`, which biases results by locale, `sourceCountry` excludes results from other countries.",
+            "schema": {
+              "type": "string"
+            },
+            "example": "GB"
           },
           {
             "name": "language",
@@ -148,7 +250,10 @@
             "description": "Unit system for weather and calculation results. Defaults based on the `country` parameter — `imperial` for `US`, `metric` for all other countries.",
             "schema": {
               "type": "string",
-              "enum": ["metric", "imperial"]
+              "enum": [
+                "metric",
+                "imperial"
+              ]
             }
           },
           {
@@ -166,7 +271,17 @@
             "description": "Relative date range filter for results.",
             "schema": {
               "type": "string",
-              "enum": ["day", "week", "month", "year", "24h", "7d", "30d", "90d", "1y"]
+              "enum": [
+                "day",
+                "week",
+                "month",
+                "year",
+                "24h",
+                "7d",
+                "30d",
+                "90d",
+                "1y"
+              ]
             }
           },
           {
@@ -238,8 +353,24 @@
             "description": "Field name for result URLs. Use `url` to receive the URL field as `url` instead of the default `link`. Only affects the `/search` and `/results` endpoints.",
             "schema": {
               "type": "string",
-              "enum": ["link", "url"],
+              "enum": [
+                "link",
+                "url"
+              ],
               "default": "link"
+            }
+          },
+          {
+            "name": "imageFormat",
+            "in": "query",
+            "description": "Field naming for image results. `long` (default) uses full field names. `short` uses abbreviated field names.",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "short",
+                "long"
+              ],
+              "default": "long"
             }
           },
           {
@@ -369,60 +500,229 @@
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": ["q"],
+                "required": [
+                  "q"
+                ],
                 "properties": {
                   "q": {
                     "type": "string",
                     "description": "Search query string. Same semantics as the GET `q` parameter."
                   },
-                  "limit": { "type": "integer", "default": 10, "minimum": 1, "maximum": 100 },
-                  "offset": { "type": "integer", "default": 0, "minimum": 0 },
-                  "depth": { "type": "string", "enum": ["fast", "deep"], "default": "fast" },
-                  "intent": { "type": "string" },
-                  "format": { "type": "string", "enum": ["json", "context"], "default": "json" },
-                  "metadata": { "type": "string", "enum": ["basic", "full"], "default": "basic" },
-                  "extracts": { "type": "boolean", "default": false },
-                  "safe": { "type": "string", "enum": ["off", "moderate", "strict"], "default": "off" },
-                  "country": { "type": "string", "default": "US" },
-                  "language": { "type": "string", "default": "en" },
-                  "units": { "type": "string", "enum": ["metric", "imperial"] },
-                  "noCache": { "type": "boolean", "default": false },
-                  "dateRange": { "type": "string", "enum": ["day", "week", "month", "year", "24h", "7d", "30d", "90d", "1y"] },
-                  "dateFrom": { "type": "string", "format": "date" },
-                  "dateTo": { "type": "string", "format": "date" },
-                  "includeDomains": { "type": "string" },
-                  "excludeDomains": { "type": "string" },
-                  "includeTerms": { "type": "string" },
-                  "excludeTerms": { "type": "string" },
-                  "parseOperators": { "type": "boolean", "default": true },
-                  "linkFormat": { "type": "string", "enum": ["link", "url"], "default": "link" },
-                  "filetype": { "type": "string" },
-                  "intitle": { "type": "string" },
-                  "inurl": { "type": "string" },
-                  "intext": { "type": "string" },
+                  "limit": {
+                    "type": "integer",
+                    "default": 10,
+                    "minimum": 1,
+                    "maximum": 100
+                  },
+                  "offset": {
+                    "type": "integer",
+                    "default": 0,
+                    "minimum": 0
+                  },
+                  "searchMode": {
+                    "type": "string",
+                    "enum": [
+                      "auto",
+                      "fast",
+                      "low-cost",
+                      "deep",
+                      "exhaustive"
+                    ],
+                    "default": "auto"
+                  },
+                  "depth": {
+                    "type": "string",
+                    "enum": [
+                      "fast",
+                      "deep"
+                    ],
+                    "default": "fast",
+                    "description": "Legacy alias for `searchMode`; kept for backward compatibility."
+                  },
+                  "reranker": {
+                    "type": "string",
+                    "enum": [
+                      "auto",
+                      "small",
+                      "medium",
+                      "large",
+                      "xl"
+                    ],
+                    "default": "auto"
+                  },
+                  "intent": {
+                    "type": "string"
+                  },
+                  "format": {
+                    "type": "string",
+                    "enum": [
+                      "json",
+                      "context"
+                    ],
+                    "default": "json"
+                  },
+                  "metadata": {
+                    "type": "string",
+                    "enum": [
+                      "basic",
+                      "full"
+                    ],
+                    "default": "basic"
+                  },
+                  "extracts": {
+                    "type": "boolean",
+                    "default": false
+                  },
+                  "enrichContent": {
+                    "type": "boolean",
+                    "default": false
+                  },
+                  "maxContentLength": {
+                    "type": "integer"
+                  },
+                  "safe": {
+                    "type": "string",
+                    "enum": [
+                      "off",
+                      "moderate",
+                      "strict"
+                    ],
+                    "default": "off"
+                  },
+                  "country": {
+                    "type": "string",
+                    "default": "US"
+                  },
+                  "sourceCountry": {
+                    "type": "string"
+                  },
+                  "language": {
+                    "type": "string",
+                    "default": "en"
+                  },
+                  "units": {
+                    "type": "string",
+                    "enum": [
+                      "metric",
+                      "imperial"
+                    ]
+                  },
+                  "noCache": {
+                    "type": "boolean",
+                    "default": false
+                  },
+                  "dateRange": {
+                    "type": "string",
+                    "enum": [
+                      "day",
+                      "week",
+                      "month",
+                      "year",
+                      "24h",
+                      "7d",
+                      "30d",
+                      "90d",
+                      "1y"
+                    ]
+                  },
+                  "dateFrom": {
+                    "type": "string",
+                    "format": "date"
+                  },
+                  "dateTo": {
+                    "type": "string",
+                    "format": "date"
+                  },
+                  "includeDomains": {
+                    "type": "string"
+                  },
+                  "excludeDomains": {
+                    "type": "string"
+                  },
+                  "includeTerms": {
+                    "type": "string"
+                  },
+                  "excludeTerms": {
+                    "type": "string"
+                  },
+                  "parseOperators": {
+                    "type": "boolean",
+                    "default": true
+                  },
+                  "linkFormat": {
+                    "type": "string",
+                    "enum": [
+                      "link",
+                      "url"
+                    ],
+                    "default": "link"
+                  },
+                  "imageFormat": {
+                    "type": "string",
+                    "enum": [
+                      "short",
+                      "long"
+                    ],
+                    "default": "long"
+                  },
+                  "filetype": {
+                    "type": "string"
+                  },
+                  "intitle": {
+                    "type": "string"
+                  },
+                  "inurl": {
+                    "type": "string"
+                  },
+                  "intext": {
+                    "type": "string"
+                  },
+                  "latitude": {
+                    "type": "number",
+                    "description": "Latitude in decimal degrees. Sent in the body to keep coordinates out of HTTP access logs."
+                  },
+                  "longitude": {
+                    "type": "number",
+                    "description": "Longitude in decimal degrees."
+                  },
+                  "accuracy": {
+                    "type": "number",
+                    "description": "Location accuracy in meters."
+                  },
+                  "city": {
+                    "type": "string",
+                    "description": "City name for location-aware queries."
+                  },
+                  "state": {
+                    "type": "string",
+                    "description": "State or region name."
+                  },
+                  "countryCode": {
+                    "type": "string",
+                    "description": "Two-letter ISO 3166-1 country code for the caller's location."
+                  },
+                  "postalCode": {
+                    "type": "string",
+                    "description": "Postal or ZIP code."
+                  },
+                  "timezone": {
+                    "type": "string",
+                    "description": "IANA timezone, for example America/Los_Angeles."
+                  },
                   "location": {
-                    "type": "object",
-                    "description": "Optional location context. Sent in the body to keep coordinates out of HTTP access logs.",
-                    "properties": {
-                      "city": { "type": "string" },
-                      "region": { "type": "string" },
-                      "country": { "type": "string", "description": "Two-letter ISO 3166-1 country code." },
-                      "lat": { "type": "number", "description": "Latitude in decimal degrees." },
-                      "lng": { "type": "number", "description": "Longitude in decimal degrees." }
-                    }
+                    "type": "string",
+                    "description": "Display name for the caller's location, for example \"San Francisco, CA\"."
                   }
                 }
               },
               "example": {
                 "q": "best italian restaurants near me",
                 "limit": 10,
-                "location": {
-                  "city": "San Francisco",
-                  "region": "California",
-                  "country": "US",
-                  "lat": 37.7794,
-                  "lng": -122.4176
-                }
+                "city": "San Francisco",
+                "state": "California",
+                "countryCode": "US",
+                "latitude": 37.7794,
+                "longitude": -122.4176
               }
             }
           }
@@ -442,7 +742,9 @@
             "description": "Bad request — missing or invalid parameters",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/Error" }
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
               }
             }
           },
@@ -450,7 +752,9 @@
             "description": "Unauthorized — missing or invalid API key",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/Error" }
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
               }
             }
           },
@@ -458,7 +762,9 @@
             "description": "Insufficient credits — account balance depleted",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/Error" }
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
               }
             }
           },
@@ -466,7 +772,9 @@
             "description": "Rate limit exceeded",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/Error" }
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
               }
             }
           },
@@ -474,7 +782,195 @@
             "description": "Internal server error",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/Error" }
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/fetch": {
+      "get": {
+        "summary": "Fetch a web page",
+        "description": "Fetches a single web page and returns clean extracted content (title, article text, metadata) as JSON, or LLM-ready markdown with format=context. The companion to /api/v1/search: search, pick a result, fetch it in full.",
+        "operationId": "fetchPage",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "url",
+            "in": "query",
+            "required": true,
+            "description": "Full http(s) URL of the page to fetch.",
+            "schema": {
+              "type": "string",
+              "format": "uri"
+            }
+          },
+          {
+            "name": "format",
+            "in": "query",
+            "required": false,
+            "description": "Response format: json (structured, default) or context (LLM-ready markdown).",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "json",
+                "context"
+              ],
+              "default": "json"
+            }
+          },
+          {
+            "name": "maxContentLength",
+            "in": "query",
+            "required": false,
+            "description": "Maximum content characters to return (default 200000).",
+            "schema": {
+              "type": "integer",
+              "minimum": 500
+            }
+          },
+          {
+            "name": "query",
+            "in": "query",
+            "required": false,
+            "description": "Optional query string to scope extraction to. When set, the response includes `query_extracts`, `query_snippet`, and `query_hash` fields scoped to this query.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Extracted page content",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "url": {
+                      "type": "string"
+                    },
+                    "title": {
+                      "type": "string"
+                    },
+                    "description": {
+                      "type": "string"
+                    },
+                    "content": {
+                      "type": "string",
+                      "description": "Clean extracted text content"
+                    },
+                    "markdown": {
+                      "type": "string",
+                      "description": "Clean extracted content as markdown, when available."
+                    },
+                    "extracts": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      },
+                      "description": "Key passage extracts from the page, when available."
+                    },
+                    "snippet": {
+                      "type": "string",
+                      "description": "Short excerpt from the page."
+                    },
+                    "author": {
+                      "type": "string"
+                    },
+                    "date": {
+                      "type": "string"
+                    },
+                    "site_name": {
+                      "type": "string"
+                    },
+                    "image": {
+                      "type": "string"
+                    },
+                    "lang": {
+                      "type": "string"
+                    },
+                    "word_count": {
+                      "type": "integer"
+                    },
+                    "truncated": {
+                      "type": "boolean"
+                    },
+                    "query_extracts": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      },
+                      "description": "Text extracts from the page most relevant to `query`. Only present when `query` is set."
+                    },
+                    "query_snippet": {
+                      "type": "string",
+                      "description": "Short excerpt from the page most relevant to `query`. Only present when `query` is set."
+                    },
+                    "query_hash": {
+                      "type": "string",
+                      "description": "Hash identifying the `query` used to scope this response. Only present when `query` is set."
+                    },
+                    "partial": {
+                      "type": "boolean",
+                      "description": "Whether this is a partial response returned before the page finished retrieving. Only present when true."
+                    },
+                    "retry_after_seconds": {
+                      "type": "integer",
+                      "description": "Seconds to wait before retrying for the full content. Only present on partial responses."
+                    },
+                    "metrics": {
+                      "type": "object",
+                      "properties": {
+                        "duration_ms": {
+                          "type": "integer"
+                        },
+                        "cost_dollars": {
+                          "type": "number",
+                          "description": "Actual cost of this fetch in USD (post-discount). Failed fetches are not billed."
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              "text/markdown": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Missing or invalid url parameter"
+          },
+          "401": {
+            "description": "Missing or invalid API key"
+          },
+          "402": {
+            "description": "Credit balance exhausted"
+          },
+          "422": {
+            "description": "The page was reached but its content could not be extracted. Not retriable. Not billed."
+          },
+          "429": {
+            "description": "Rate limit exceeded"
+          },
+          "503": {
+            "description": "The page is still being retrieved, or a transient failure occurred. Retriable — retry after the number of seconds in the `Retry-After` header. Not billed.",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds to wait before retrying.",
+                "schema": {
+                  "type": "integer"
+                }
               }
             }
           }
@@ -598,7 +1094,14 @@
             "description": "Calculation result. Present when the query triggers a calculation intent."
           }
         },
-        "required": ["results_type", "answer", "type", "title", "results", "metrics"]
+        "required": [
+          "results_type",
+          "answer",
+          "type",
+          "title",
+          "results",
+          "metrics"
+        ]
       },
       "SearchResult": {
         "type": "object",
@@ -623,7 +1126,20 @@
           "type": {
             "type": "string",
             "description": "Result type.",
-            "enum": ["website", "news", "video", "image", "place", "profile", "social", "academic", "calculation", "weather", "computation", "instant answer"]
+            "enum": [
+              "website",
+              "news",
+              "video",
+              "image",
+              "place",
+              "profile",
+              "social",
+              "academic",
+              "calculation",
+              "weather",
+              "computation",
+              "instant answer"
+            ]
           },
           "date": {
             "type": "string",
@@ -658,7 +1174,12 @@
             "description": "Reader data with extracted page content. Only included when `metadata=full`."
           }
         },
-        "required": ["title", "link", "desc", "source", "type"]
+        "required": [
+          "title",
+          "link",
+          "desc",
+          "source"
+        ]
       },
       "ImageResult": {
         "type": "object",
@@ -684,7 +1205,9 @@
           "type": {
             "type": "string",
             "description": "Always `image`.",
-            "enum": ["image"]
+            "enum": [
+              "image"
+            ]
           },
           "thumbnail": {
             "type": "string",
@@ -700,7 +1223,13 @@
             "description": "Image height in pixels (as a string)."
           }
         },
-        "required": ["title", "link", "image", "source", "type"]
+        "required": [
+          "title",
+          "link",
+          "image",
+          "source",
+          "type"
+        ]
       },
       "WeatherResult": {
         "type": "object",
@@ -741,7 +1270,10 @@
           "units": {
             "type": "string",
             "description": "Unit system: `metric` or `imperial`.",
-            "enum": ["metric", "imperial"]
+            "enum": [
+              "metric",
+              "imperial"
+            ]
           },
           "description": {
             "type": "string",
@@ -780,7 +1312,12 @@
             "description": "Timestamp of the weather data."
           }
         },
-        "required": ["location", "temperature", "units", "description"]
+        "required": [
+          "location",
+          "temperature",
+          "units",
+          "description"
+        ]
       },
       "CalculationResult": {
         "type": "object",
@@ -794,7 +1331,10 @@
             "description": "The calculated result."
           }
         },
-        "required": ["expression", "result"]
+        "required": [
+          "expression",
+          "result"
+        ]
       },
       "Metrics": {
         "type": "object",
@@ -835,6 +1375,14 @@
           "cached": {
             "type": "boolean",
             "description": "Whether the response was served from cache. Only present on cache hits."
+          },
+          "cache_age_seconds": {
+            "type": "integer",
+            "description": "Age of the cached response in seconds. Only present on cache hits."
+          },
+          "cost_dollars": {
+            "type": "number",
+            "description": "Amount charged to your account for this request in USD, after any discounts. Outcome-based pricing (actual cost plus margin) applies to searchMode and default calls; legacy explicit depth=fast|deep calls are charged the fixed per-call rate."
           }
         }
       },
@@ -850,7 +1398,10 @@
             "description": "Detailed error description."
           }
         },
-        "required": ["error", "message"]
+        "required": [
+          "error",
+          "message"
+        ]
       }
     }
   }

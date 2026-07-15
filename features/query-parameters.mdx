@@ -6,12 +6,13 @@ keywords:
   - search API parameters
   - query parameters
   - API reference
+  - searchMode
 ---
 
-All parameters are passed as query string parameters on the `GET /api/v1/search` endpoint.
+All parameters work on both `GET /api/v1/search` (as query string parameters) and `POST /api/v1/search` (as JSON body fields). POST is preferred for location-bearing requests.
 
 <Tip>
-Most integrations only need `q`, `limit`, and `depth`. The filtering and output parameters below are available when you need more control.
+Most integrations only need `q` and `searchMode`. The filtering and output parameters below are available when you need more control.
 </Tip>
 
 ## Core parameters
@@ -21,8 +22,9 @@ Most integrations only need `q`, `limit`, and `depth`. The filtering and output 
 | `q` | string | **required** | Search query string. Also accepts a JSON array of up to 5 queries (e.g., `["query one", "query two"]`). |
 | `limit` | integer | `10` | Maximum results to return (1–100) |
 | `offset` | integer | `0` | Results to skip for pagination |
-| `depth` | string | `fast` | Search mode: `fast` (single search, ~1s) or `deep` (searches from multiple angles for higher-quality results, ~2–3s) |
-| `intent` | string | auto | Force search intent. See [intent values](#intent-values) below. |
+| `searchMode` | string | `auto` | Controls search depth and cost: `auto`, `fast`, `low-cost`, `deep`, or `exhaustive`. See [search modes](/search/search-modes). |
+| `depth` | string | `fast` | Legacy alias: `fast` or `deep`. Use `searchMode` instead. When both are present, `searchMode` wins. Bare `depth` (without `searchMode`) uses flat-rate billing. |
+| `intent` | string | `auto` | Force search intent. `auto` detects from the query; `none` disables intent detection. See [intent values](#intent-values) below. |
 
 ### Intent values
 
@@ -42,7 +44,7 @@ The API also accepts full intent names (e.g., `FallbackSearchIntent`, `VideoSear
 
 ```bash
 # Force news intent
-curl "https://search-api.andisearch.com/api/v1/search?q=AI+startups&intent=news" \
+curl "https://api.andiai.com/api/v1/search?q=AI+startups&intent=news" \
   -H "x-api-key: YOUR_API_KEY"
 ```
 
@@ -50,17 +52,21 @@ curl "https://search-api.andisearch.com/api/v1/search?q=AI+startups&intent=news"
 
 | Parameter | Type | Default | Description |
 |---|---|---|---|
-| `format` | string | `json` | Response format: `json` or `context`. The `context` format returns results as markdown text, suitable for passing to language models. |
+| `format` | string | `json` | Response format: `json` or `context`. The `context` format returns results as markdown text with YAML frontmatter, suitable for LLM context windows. See [response format](/features/response-format). |
 | `metadata` | string | `basic` | Metadata level: `basic` or `full`. With `full`, results include `contentType` and `reader` data. |
-| `extracts` | boolean | `false` | Include longer text extracts from result pages |
+| `extracts` | boolean | `false` (`true` for `format=context`) | Include longer text extracts from result pages |
+| `enrichContent` | boolean | `false` | Fetch full page content via the reader service. Budget scales with `searchMode` (fast ~2.5s cap, exhaustive ~12s cap). |
+| `maxContentLength` | integer | — | Caps enriched content length |
+| `imageFormat` | string | `long` | Image field naming: `short` or `long` |
+| `linkFormat` | string | `link` | Field name for result URLs: `link` (default) or `url` |
 
 ```bash
 # Get results as markdown for LLM context
-curl "https://search-api.andisearch.com/api/v1/search?q=machine+learning&format=context" \
+curl "https://api.andiai.com/api/v1/search?q=machine+learning&format=context" \
   -H "x-api-key: YOUR_API_KEY"
 
 # Get results with text extracts
-curl "https://search-api.andisearch.com/api/v1/search?q=machine+learning&extracts=true" \
+curl "https://api.andiai.com/api/v1/search?q=machine+learning&extracts=true" \
   -H "x-api-key: YOUR_API_KEY"
 ```
 
@@ -73,9 +79,10 @@ curl "https://search-api.andisearch.com/api/v1/search?q=machine+learning&extract
 | Parameter | Type | Default | Description |
 |---|---|---|---|
 | `safe` | string | `off` | Safe search level: `off`, `moderate`, or `strict` |
-| `country` | string | `US` | ISO 3166-1 country code (e.g., `US`, `GB`, `DE`) |
-| `language` | string | `en` | ISO 639-1 language code (e.g., `en`, `es`, `fr`) |
-| `units` | string | auto | Unit system for weather/calculations: `metric`, `imperial`. Defaults based on `country` — `imperial` for `US`, `metric` for all others. |
+| `country` | string | `US` | ISO 3166-1 country code for locale bias (e.g., `US`, `GB`, `DE`) |
+| `sourceCountry` | string | — | ISO 3166-1 country code to restrict results by source country |
+| `language` | string | `en` | ISO 639-1 language code (e.g., `en`, `es`, `fr`). The `lang:` query operator takes precedence. |
+| `units` | string | auto | Unit system for weather/calculations: `metric`, `imperial`. Defaults based on `country`. |
 
 ## Date filtering
 
@@ -89,7 +96,7 @@ Use either `dateRange` for relative filtering or `dateFrom`/`dateTo` for absolut
 
 ```bash
 # Results from the past week
-curl "https://search-api.andisearch.com/api/v1/search?q=AI+news&dateRange=week" \
+curl "https://api.andiai.com/api/v1/search?q=AI+news&dateRange=week" \
   -H "x-api-key: YOUR_API_KEY"
 ```
 
@@ -104,7 +111,7 @@ Both support wildcards: `*.example.com` matches all subdomains. See [filtering](
 
 ```bash
 # Search only on specific sites
-curl "https://search-api.andisearch.com/api/v1/search?q=python+tutorials&includeDomains=docs.python.org,realpython.com" \
+curl "https://api.andiai.com/api/v1/search?q=python+tutorials&includeDomains=docs.python.org,realpython.com" \
   -H "x-api-key: YOUR_API_KEY"
 ```
 
@@ -129,8 +136,24 @@ curl "https://search-api.andisearch.com/api/v1/search?q=python+tutorials&include
 | Parameter | Type | Default | Description |
 |---|---|---|---|
 | `noCache` | boolean | `false` | Bypass cached results |
-| `parseOperators` | boolean | `true` | Parse [query operators](/features/query-operators) from the query string |
-| `linkFormat` | string | `link` | Field name for result URLs: `link` (default) or `url` |
+| `parseOperators` | boolean | `true` | Parse [query operators](/features/query-operators) from the query string. Set to `false` to treat operator syntax as literal text. |
+| `reranker` | string | `auto` | Semantic reranker strength: `auto`, `small`, `medium`, `large`, or `xl`. Higher values improve result ordering for complex queries at the cost of latency. `xl` requires `deep` or `exhaustive` mode. See [search modes](/search/search-modes). |
+
+## Location parameters
+
+Location can be passed as flat keys on GET or POST. POST is preferred for location-bearing requests.
+
+| Parameter | Type | Description |
+|---|---|---|
+| `latitude` | number | Latitude coordinate |
+| `longitude` | number | Longitude coordinate |
+| `city` | string | City name |
+| `state` | string | State or region |
+| `countryCode` | string | Country code for the location |
+| `postalCode` | string | Postal/ZIP code |
+| `timezone` | string | IANA timezone (e.g., `America/Los_Angeles`) |
+| `location` | string | Display name for the location |
+| `accuracy` | number | Location accuracy in meters |
 
 ## Examples
 
@@ -138,32 +161,32 @@ curl "https://search-api.andisearch.com/api/v1/search?q=python+tutorials&include
 
 ```bash
 # First page
-curl "https://search-api.andisearch.com/api/v1/search?q=machine+learning&limit=10" \
+curl "https://api.andiai.com/api/v1/search?q=machine+learning&limit=10" \
   -H "x-api-key: YOUR_API_KEY"
 
 # Second page
-curl "https://search-api.andisearch.com/api/v1/search?q=machine+learning&limit=10&offset=10" \
+curl "https://api.andiai.com/api/v1/search?q=machine+learning&limit=10&offset=10" \
   -H "x-api-key: YOUR_API_KEY"
 ```
 
-### Deep search with extracts
+### Deep mode with extracts
 
 ```bash
-curl "https://search-api.andisearch.com/api/v1/search?q=climate+change+effects&depth=deep&extracts=true" \
+curl "https://api.andiai.com/api/v1/search?q=climate+change+effects&searchMode=deep&extracts=true" \
   -H "x-api-key: YOUR_API_KEY"
 ```
 
 ### Filtered by date and domain
 
 ```bash
-curl "https://search-api.andisearch.com/api/v1/search?q=product+launch&dateRange=month&includeDomains=techcrunch.com,theverge.com" \
+curl "https://api.andiai.com/api/v1/search?q=product+launch&dateRange=month&includeDomains=techcrunch.com,theverge.com" \
   -H "x-api-key: YOUR_API_KEY"
 ```
 
 ### Multi-query search
 
 ```bash
-curl -G "https://search-api.andisearch.com/api/v1/search" \
+curl -G "https://api.andiai.com/api/v1/search" \
   --data-urlencode 'q=["artificial intelligence", "machine learning"]' \
   -H "x-api-key: YOUR_API_KEY"
 ```
@@ -175,14 +198,14 @@ Multi-query search accepts a JSON array of up to 5 queries and returns combined 
 ## Next steps
 
 <CardGroup cols={2}>
+  <Card title="Search modes" icon="gauge-high" href="/search/search-modes">
+    How searchMode controls speed, depth, and cost.
+  </Card>
   <Card title="Filtering" icon="filter" href="/features/filtering">
     Domain, date, and content filtering in depth.
   </Card>
   <Card title="Query operators" icon="terminal" href="/features/query-operators">
     In-query operators like `site:` and `filetype:`.
-  </Card>
-  <Card title="Basic search example" icon="code" href="/examples/basic-search">
-    Complete integration with error handling.
   </Card>
   <Card title="Response format" icon="brackets-curly" href="/features/response-format">
     Response structure and result types.

@@ -1,6 +1,6 @@
 ---
 title: Build with AI agents
-description: Connect AI agents to the Andi docs via MCP, llms.txt, and markdown content negotiation. Optimized for Claude Code, Cursor, VS Code, and other AI tools.
+description: Connect AI agents to Andi web search via MCP, and to the Andi docs via MCP, llms.txt, and markdown content negotiation. Optimized for Claude Code, Cursor, VS Code, and other AI tools.
 icon: robot
 keywords:
   - MCP server
@@ -10,13 +10,178 @@ keywords:
   - Claude Code
   - Cursor
   - VS Code
+  - install.md
+  - Agent Skill
 ---
 
-This documentation site is built for AI agents. Every page is available as clean markdown, and the site exposes an MCP server and llms.txt for programmatic discovery.
+The Andi AI Search API is built for AI agents. You can call the REST endpoints from agents you build (see the [quickstart](/getting-started/quickstart) and [AI agent tool example](/examples/ai-agent-tool)), or connect the MCP server to your coding tools for web search and page fetch.
 
-## MCP server
+## One-URL install
 
-The docs site runs a [Model Context Protocol](https://modelcontextprotocol.io/) server that lets AI tools search and read documentation directly.
+Point any agent at the install guide and it will set itself up:
+
+```text
+https://api.andiai.com/install.md
+```
+
+The guide walks through getting an API key, connecting the MCP server, and verifying the setup. It includes snippets for Claude Code, Cursor, Codex, VS Code, and generic MCP clients.
+
+## Andi Search MCP server
+
+Use Andi as your agent's web search and page fetch tool over the [Model Context Protocol](https://modelcontextprotocol.io/).
+
+**Server URL:** `https://api.andiai.com/mcp`
+
+**Transport:** Streamable HTTP
+
+**Authentication:** Pass your API key in the `x-api-key` header. Get a key from the [API Console](https://console.andiai.com/signup).
+
+### Claude Code
+
+```bash
+claude mcp add --transport http andi https://api.andiai.com/mcp --header "x-api-key: YOUR_API_KEY"
+```
+
+### Cursor
+
+Add to your `.cursor/mcp.json`:
+
+```json
+{
+  "mcpServers": {
+    "andi": {
+      "url": "https://api.andiai.com/mcp",
+      "headers": {
+        "x-api-key": "YOUR_API_KEY"
+      }
+    }
+  }
+}
+```
+
+### Claude web and desktop
+
+Add this as a custom connector in your MCP server settings:
+
+```json
+{
+  "mcpServers": {
+    "andi": {
+      "url": "https://api.andiai.com/mcp",
+      "headers": {
+        "x-api-key": "YOUR_API_KEY"
+      }
+    }
+  }
+}
+```
+
+### VS Code
+
+Add to your VS Code settings (JSON):
+
+```json
+{
+  "mcp": {
+    "servers": {
+      "andi": {
+        "type": "http",
+        "url": "https://api.andiai.com/mcp",
+        "headers": {
+          "x-api-key": "YOUR_API_KEY"
+        }
+      }
+    }
+  }
+}
+```
+
+### Codex CLI
+
+Add to `~/.codex/config.toml` (or a project-scoped `.codex/config.toml`), with `ANDI_API_KEY` exported in your shell:
+
+```toml
+[mcp_servers.andi]
+url = "https://api.andiai.com/mcp"
+env_http_headers = { "x-api-key" = "ANDI_API_KEY" }
+```
+
+The same config is shared by the Codex CLI, IDE extension, and ChatGPT desktop app.
+
+### Other MCP clients
+
+Any client that supports the Streamable HTTP transport can connect: server URL `https://api.andiai.com/mcp`, with your API key in the `x-api-key` request header.
+
+## MCP tools
+
+### `andi_web_search`
+
+Searches the web and returns LLM-ready markdown. Wraps `GET /api/v1/search` with `format=context`.
+
+| Parameter | Type | Default | Description |
+|---|---|---|---|
+| `q` | string | **required** | Search query. Supports [query operators](/features/query-operators). |
+| `limit` | integer | `10` | Results to return (1–50) |
+| `depth` | string | `fast` | `fast` or `deep` |
+| `country` | string | — | ISO 3166-1 country code (e.g., `US`, `GB`) |
+| `language` | string | — | ISO 639-1 language code (e.g., `en`, `es`) |
+| `safe` | string | — | Safe search: `off`, `moderate`, or `strict` |
+| `dateRange` | string | — | Recency filter: `24h`, `7d`, `30d`, `90d`, `1y` |
+| `includeDomains` | string | — | Comma-separated domains to restrict results to |
+| `excludeDomains` | string | — | Comma-separated domains to exclude |
+
+<Note>
+The MCP tool caps `limit` at 50. The REST endpoint allows up to 100.
+</Note>
+
+### `andi_fetch_url`
+
+Fetches a web page and returns its content as LLM-ready markdown. Wraps `GET /api/v1/fetch`.
+
+| Parameter | Type | Default | Description |
+|---|---|---|---|
+| `url` | string | **required** | URL to fetch |
+| `maxContentLength` | integer | `200000` | Maximum content length in characters (minimum 500) |
+
+See [content retrieval](/search/content-retrieval) for the full fetch endpoint reference.
+
+## Agent Skill
+
+The API hosts an installable [Agent Skill](https://agentskills.io/) that gives agents a description of the search tool, its parameters, and usage guidance. Agents that support skills can install it directly:
+
+```bash
+npx skills add https://api.andiai.com/.well-known/skills/andi-web-search/SKILL.md
+```
+
+The skill is also available at `https://api.andiai.com/.well-known/agent-skills/andi-web-search/SKILL.md`, with an index at [`/.well-known/agent-skills/index.json`](https://api.andiai.com/.well-known/agent-skills/index.json).
+
+## Agent-native output
+
+The API supports `format=context`, which returns search results as markdown with YAML frontmatter — sized for LLM context windows and ready to use without JSON parsing. See [response format](/features/response-format) for the full contract.
+
+## Keyless pay-per-call
+
+Agents can also pay per call via x402 through [Orthogonal](https://x402.orth.sh) without signing up for an API key. See the [auth guide](https://api.andiai.com/auth.md) for details.
+
+## API discovery files
+
+The API publishes these files for automated agent and tool integration:
+
+| URL | Description |
+|---|---|
+| [`/install.md`](https://api.andiai.com/install.md) | Step-by-step agent self-install guide |
+| [`/llms.txt`](https://api.andiai.com/llms.txt) | API summary and links for LLMs |
+| [`/auth.md`](https://api.andiai.com/auth.md) | Agent-readable guide to authentication and x402 |
+| [`/openapi.json`](https://api.andiai.com/openapi.json) | OpenAPI specification |
+| [`/.well-known/api-catalog`](https://api.andiai.com/.well-known/api-catalog) | RFC 9727 API catalog entry |
+| [`/.well-known/integrations.json`](https://api.andiai.com/.well-known/integrations.json) | Integration metadata |
+| [`/.well-known/mcp/server-card.json`](https://api.andiai.com/.well-known/mcp/server-card.json) | MCP server card (transport, docs URL) |
+| [`/.well-known/skills/andi-web-search/SKILL.md`](https://api.andiai.com/.well-known/skills/andi-web-search/SKILL.md) | Installable Agent Skill |
+| [`/.well-known/oauth-protected-resource`](https://api.andiai.com/.well-known/oauth-protected-resource) | OAuth protected resource metadata |
+
+## Docs Q&A MCP server (searches this documentation only)
+
+This docs site runs its own [Model Context Protocol](https://modelcontextprotocol.io/) server, separate from the Andi Search MCP server above. It lets AI tools search and read *this documentation* — it does not perform web search.
 
 **Server URL:** `https://docs.andiai.com/mcp`
 
@@ -84,20 +249,13 @@ Use `/llms.txt` for discovery and navigation. Use `/llms-full.txt` when you need
 
 ## Markdown content negotiation
 
-Any docs page returns clean markdown when requested with the `Accept: text/markdown` header. The markdown response is ~30x smaller than HTML and includes YAML frontmatter.
+Any docs page returns clean markdown when requested with the `Accept: text/markdown` header. The markdown response includes YAML frontmatter.
 
 ```bash
 curl -H "Accept: text/markdown" https://docs.andiai.com/getting-started/quickstart
 ```
 
-The response includes headers for automated discovery:
-
-- `Link` headers pointing to `/llms.txt` and `/llms-full.txt`
-- `X-Llms-Txt` header with the llms.txt URL
-
-## LLM-ready search responses
-
-The Search API supports a `format=context` parameter that returns results as markdown optimized for LLM context windows. See [response format](/features/response-format) for details.
+The response includes `Link` headers pointing to `/llms.txt` and `/llms-full.txt`, and an `X-Llms-Txt` header.
 
 ## AI crawler access
 
@@ -107,9 +265,15 @@ The site's `robots.txt` explicitly allows AI crawlers including GPTBot, ClaudeBo
 
 <CardGroup cols={2}>
   <Card title="AI agent tool example" icon="robot" href="/examples/ai-agent-tool">
-    Define Andi search as a tool for an AI agent.
+    Search and fetch workflows for AI agents.
+  </Card>
+  <Card title="Content retrieval" icon="file-lines" href="/search/content-retrieval">
+    Full fetch endpoint reference.
   </Card>
   <Card title="Quickstart" icon="rocket" href="/getting-started/quickstart">
     Make your first API call.
+  </Card>
+  <Card title="Response format" icon="brackets-curly" href="/features/response-format">
+    JSON and context format output.
   </Card>
 </CardGroup>

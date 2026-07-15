@@ -43,7 +43,7 @@ ANDI_API_KEY=your-api-key
 
 # Search with error handling
 response=$(curl -s -w "\n%{http_code}" \
-  "https://search-api.andisearch.com/api/v1/search?q=best+programming+languages+2025&limit=5" \
+  "https://api.andiai.com/api/v1/search?q=best+programming+languages+2025&limit=5" \
   -H "x-api-key: $ANDI_API_KEY")
 
 http_code=$(echo "$response" | tail -1)
@@ -63,7 +63,7 @@ import requests
 api_key = os.environ["ANDI_API_KEY"]
 
 response = requests.get(
-    "https://search-api.andisearch.com/api/v1/search",
+    "https://api.andiai.com/api/v1/search",
     params={"q": "best programming languages 2025", "limit": 5},
     headers={"x-api-key": api_key},
 )
@@ -86,7 +86,7 @@ else:
 ```javascript JavaScript
 const apiKey = process.env.ANDI_API_KEY;
 
-const url = new URL("https://search-api.andisearch.com/api/v1/search");
+const url = new URL("https://api.andiai.com/api/v1/search");
 url.searchParams.set("q", "best programming languages 2025");
 url.searchParams.set("limit", "5");
 
@@ -128,7 +128,7 @@ Add `extracts=true` to get longer text passages from each result page:
 
 ```python
 response = requests.get(
-    "https://search-api.andisearch.com/api/v1/search",
+    "https://api.andiai.com/api/v1/search",
     params={"q": "best programming languages 2025", "extracts": "true"},
     headers={"x-api-key": api_key},
 )
@@ -145,10 +145,25 @@ Restrict results to specific sites:
 
 ```python
 response = requests.get(
-    "https://search-api.andisearch.com/api/v1/search",
+    "https://api.andiai.com/api/v1/search",
     params={
         "q": "best programming languages 2025",
         "includeDomains": "stackoverflow.com,github.com",
+    },
+    headers={"x-api-key": api_key},
+)
+```
+
+### Deep mode for thorough results
+
+Use `searchMode=deep` when you need higher-quality results and can accept a 2–3 second response:
+
+```python
+response = requests.get(
+    "https://api.andiai.com/api/v1/search",
+    params={
+        "q": "best programming languages 2025",
+        "searchMode": "deep",
     },
     headers={"x-api-key": api_key},
 )
@@ -160,7 +175,7 @@ Get results as markdown text, ready to pass into an LLM prompt:
 
 ```python
 response = requests.get(
-    "https://search-api.andisearch.com/api/v1/search",
+    "https://api.andiai.com/api/v1/search",
     params={"q": "best programming languages 2025", "format": "context"},
     headers={"x-api-key": api_key},
 )

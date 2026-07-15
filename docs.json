@@ -27,6 +27,7 @@
                     {
                         "group": "Search",
                         "pages": [
+                            "search/search-modes",
                             "search/fast-search",
                             "search/deep-search",
                             "search/content-retrieval"

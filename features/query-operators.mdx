@@ -20,7 +20,7 @@ Restrict or exclude results from specific domains:
 | `-site:` | Exclude results from this domain | `machine learning -site:wikipedia.org` |
 
 ```bash
-curl "https://search-api.andisearch.com/api/v1/search?q=site:github.com+python+libraries" \
+curl "https://api.andiai.com/api/v1/search?q=site:github.com+python+libraries" \
   -H "x-api-key: YOUR_API_KEY"
 ```
 
@@ -45,7 +45,7 @@ Filter by where terms appear:
 | `intext:` | Term must be in the body text (alias: `inbody:`) | `intext:benchmarks LLM performance` |
 
 ```bash
-curl "https://search-api.andisearch.com/api/v1/search?q=filetype:pdf+machine+learning+survey" \
+curl "https://api.andiai.com/api/v1/search?q=filetype:pdf+machine+learning+survey" \
   -H "x-api-key: YOUR_API_KEY"
 ```
 
@@ -75,7 +75,7 @@ Uses ISO 639-1 two-letter language codes.
 Operators can be combined in a single query:
 
 ```bash
-curl "https://search-api.andisearch.com/api/v1/search?q=site:github.com+filetype:md+intitle:readme+machine+learning+after:2025-01-01" \
+curl "https://api.andiai.com/api/v1/search?q=site:github.com+filetype:md+intitle:readme+machine+learning+after:2025-01-01" \
   -H "x-api-key: YOUR_API_KEY"
 ```
 
@@ -86,7 +86,7 @@ This searches GitHub for markdown README files about machine learning published 
 If your query contains text that looks like an operator but shouldn't be treated as one, set `parseOperators=false`:
 
 ```bash
-curl "https://search-api.andisearch.com/api/v1/search?q=how+to+use+site:+prefix+in+DNS&parseOperators=false" \
+curl "https://api.andiai.com/api/v1/search?q=how+to+use+site:+prefix+in+DNS&parseOperators=false" \
   -H "x-api-key: YOUR_API_KEY"
 ```
 

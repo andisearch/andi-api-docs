@@ -29,7 +29,6 @@ run_response_tests() {
     assert_each_has_field ".results" "link" "each result has link"
     assert_each_has_field ".results" "desc" "each result has desc"
     assert_each_has_field ".results" "source" "each result has source"
-    assert_each_has_field ".results" "type" "each result has type"
   else
     skip "result field validation" "no results returned"
   fi
@@ -55,6 +54,8 @@ run_response_tests() {
   assert_json_field ".metrics.intent" "metrics has intent"
   assert_json_field ".metrics.duration" "metrics has duration"
   assert_json_field ".metrics.results_returned" "metrics has results_returned"
+  assert_json_field ".metrics.cost_dollars" "metrics has cost_dollars"
+  assert_json_type ".metrics.cost_dollars" "number" "metrics.cost_dollars is numeric"
 
   # Weather response structure (if we can get one)
   api_get "q=weather+new+york&intent=weather"

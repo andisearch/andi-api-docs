@@ -12,6 +12,16 @@ run_output_format_tests() {
   # format=context — returns markdown text, not JSON
   api_get "q=test&format=context"
   assert_status "200" "format=context returns 200"
+  if response_body | grep -q 'format: "andi-context/v1"'; then
+    pass "format=context frontmatter has format: andi-context/v1"
+  else
+    fail "format=context frontmatter has format: andi-context/v1" "andi-context/v1 marker not found in body"
+  fi
+  if response_body | grep -q "^cost_dollars:"; then
+    pass "format=context frontmatter has cost_dollars"
+  else
+    fail "format=context frontmatter has cost_dollars" "cost_dollars: line not found in body"
+  fi
 
   # metadata=basic (default)
   api_get "q=test&metadata=basic"

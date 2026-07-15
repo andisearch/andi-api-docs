@@ -1,21 +1,20 @@
 ---
-title: Deep search
+title: Deep mode
 description: Searches your topic from multiple angles to find higher-quality results, with spell correction, in ~2–3 seconds.
 icon: microscope
 keywords:
   - deep search API
   - spell correction API
-  - enhanced search
+  - deep mode
+  - searchMode deep
 ---
 
-Deep search explores your topic from multiple angles to find results that a single quick search might miss. It keeps searching until it finds strong, relevant matches — then corrects any typos in your query. Responses take approximately 2–3 seconds.
-
-Enable deep search by setting `depth=deep`:
+Deep mode explores your topic from multiple angles to find results that a single quick search might miss. It keeps searching until it finds strong, relevant matches, and corrects any typos in your query. Responses take about 2–3 seconds.
 
 <CodeGroup>
 
 ```bash curl
-curl "https://search-api.andisearch.com/api/v1/search?q=quantm+computing+applications&depth=deep" \
+curl "https://api.andiai.com/api/v1/search?q=quantm+computing+applications&searchMode=deep" \
   -H "x-api-key: YOUR_API_KEY"
 ```
 
@@ -23,14 +22,13 @@ curl "https://search-api.andisearch.com/api/v1/search?q=quantm+computing+applica
 import requests
 
 response = requests.get(
-    "https://search-api.andisearch.com/api/v1/search",
-    params={"q": "quantm computing applications", "depth": "deep"},
+    "https://api.andiai.com/api/v1/search",
+    params={"q": "quantm computing applications", "searchMode": "deep"},
     headers={"x-api-key": "YOUR_API_KEY"}
 )
 
 data = response.json()
 
-# Check if the query was spell-corrected
 if data.get("correctedQuery"):
     print(f"Corrected: {data['correctedQuery']}")
 
@@ -40,7 +38,7 @@ for result in data["results"]:
 
 ```javascript JavaScript
 const response = await fetch(
-  "https://search-api.andisearch.com/api/v1/search?q=quantm+computing+applications&depth=deep",
+  "https://api.andiai.com/api/v1/search?q=quantm+computing+applications&searchMode=deep",
   { headers: { "x-api-key": "YOUR_API_KEY" } }
 );
 
@@ -56,21 +54,23 @@ data.results.forEach(r => console.log(`${r.title} — ${r.source}`));
 </CodeGroup>
 
 <Note>
-The example query intentionally misspells "quantum" — deep search corrects it automatically.
+The example query intentionally misspells "quantum" — deep mode corrects it automatically.
 </Note>
 
-## What deep search adds
+You can also use the legacy `depth=deep` parameter, which has the same effect.
+
+## What deep mode adds
 
 - **Thorough coverage** — finds results across multiple angles of your topic, covering sources a single search might miss
 - **Higher quality results** — keeps searching until it finds strong, relevant matches
 - **Spell correction** — fixes typos and misspellings in the query
 
-## When to use deep search
+## When to use deep mode
 
 - You need results a quick search might miss — niche topics, multi-faceted queries, or less obvious sources
 - Thoroughness matters more than speed
 - Queries come from user input that may contain typos
-- You want the highest quality results and can accept a 2–3 second response
+- You want higher-quality results and can accept a 2–3 second response
 
 ## Example response
 
@@ -94,6 +94,7 @@ The example query intentionally misspells "quantum" — deep search corrects it 
     "query": "quantum computing applications",
     "intent": "FallbackSearchIntent",
     "duration": 2340,
+    "cost_dollars": 0.0089,
     "results_returned": 10,
     "total_results_found": 85
   }
@@ -102,7 +103,7 @@ The example query intentionally misspells "quantum" — deep search corrects it 
 
 ### Handling corrected queries
 
-The `correctedQuery` field appears only when deep search detects and fixes a misspelling. Use it to show users what query was actually searched:
+The `correctedQuery` field appears only when deep mode detects and fixes a misspelling. Use it to show users what was actually searched:
 
 ```python
 data = response.json()
@@ -111,23 +112,23 @@ if data.get("correctedQuery"):
 ```
 
 <Note>
-`correctedQuery` is only present on deep search responses where a correction was made. Fast search does not perform spell correction.
+`correctedQuery` is only present on deep mode responses where a correction was made. Fast mode does not perform spell correction.
 </Note>
 
 <Accordion title="Adding extracts and metadata">
-Combine deep search with richer output options:
+Combine deep mode with richer output options:
 
 ```bash
-# Deep search with text extracts
-curl "https://search-api.andisearch.com/api/v1/search?q=quantum+computing&depth=deep&extracts=true" \
+# Deep mode with text extracts
+curl "https://api.andiai.com/api/v1/search?q=quantum+computing&searchMode=deep&extracts=true" \
   -H "x-api-key: YOUR_API_KEY"
 
-# Deep search with full metadata
-curl "https://search-api.andisearch.com/api/v1/search?q=quantum+computing&depth=deep&metadata=full" \
+# Deep mode with full metadata
+curl "https://api.andiai.com/api/v1/search?q=quantum+computing&searchMode=deep&metadata=full" \
   -H "x-api-key: YOUR_API_KEY"
 
-# Deep search as LLM context
-curl "https://search-api.andisearch.com/api/v1/search?q=quantum+computing&depth=deep&format=context" \
+# Deep mode as LLM context
+curl "https://api.andiai.com/api/v1/search?q=quantum+computing&searchMode=deep&format=context" \
   -H "x-api-key: YOUR_API_KEY"
 ```
 </Accordion>
@@ -135,11 +136,11 @@ curl "https://search-api.andisearch.com/api/v1/search?q=quantum+computing&depth=
 ## Next steps
 
 <CardGroup cols={2}>
-  <Card title="Fast search" icon="bolt" href="/search/fast-search">
+  <Card title="Fast mode" icon="bolt" href="/search/fast-search">
     Default mode for real-time applications.
   </Card>
-  <Card title="Response format" icon="brackets-curly" href="/features/response-format">
-    Response structure and result types.
+  <Card title="Search modes" icon="gauge-high" href="/search/search-modes">
+    All five modes compared, including exhaustive.
   </Card>
   <Card title="Research assistant" icon="book-open" href="/examples/research-assistant">
     Multi-query search with result aggregation.

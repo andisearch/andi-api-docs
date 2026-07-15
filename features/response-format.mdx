@@ -1,14 +1,17 @@
 ---
 title: Response format
-description: Structure of the Andi AI Search API response, including result types and instant answers.
+description: Structure of the Andi AI Search API response, including result types, metrics, and the context format for LLMs.
 icon: brackets-curly
 keywords:
   - search API response
   - JSON response format
   - search result types
+  - context format
+  - format=context
+  - andi-context
 ---
 
-All responses are JSON objects. The `format=context` option returns markdown text instead — see [query parameters](/features/query-parameters) for details.
+The API returns JSON by default. The `format=context` option returns markdown with YAML frontmatter instead — see [context format](#context-format) below.
 
 <Tip>
 The `results_type` field tells you the shape of the response. Use it to determine which arrays and objects are present — for example, `results_type: "weather"` means a `weather` object is included.
@@ -23,9 +26,9 @@ The `results_type` field tells you the shape of the response. Use it to determin
 | `type` | string | Yes | Same as `results_type` |
 | `title` | string | Yes | Title summarizing the search results |
 | `results` | array | Yes | Search results |
-| `metrics` | object | Yes | Search performance metrics |
+| `metrics` | object | Yes | Search performance and cost metrics |
 | `safeSearch` | object | Yes | Echo of safe-search state: `{requested, applied}`. Use this to confirm your `safe` parameter was honored. |
-| `correctedQuery` | string | No | Spell-corrected query (deep search only, when a correction is made) |
+| `correctedQuery` | string | No | Spell-corrected query (deep mode only, when a correction is made) |
 | `related_searches` | array | No | Related search suggestions |
 | `topics` | array | No | Related topics |
 
@@ -53,7 +56,7 @@ Each result in the `results` array has this structure:
 | `link` | string | Yes | Page URL (returned as `url` when `linkFormat=url`) |
 | `desc` | string | Yes | Page description or summary |
 | `source` | string | Yes | Domain name |
-| `type` | string | Yes | Result type (see [result types](#result-types)) |
+| `type` | string | No | Result type when classified (see [result types](#result-types)) |
 | `date` | string | No | Publication date |
 | `image` | string | No | Preview image URL |
 | `snippet` | string | No | Query-relevant text excerpt (distinct from `desc`) |
@@ -142,6 +145,7 @@ Queries about weather return a `weather` object:
     "intent": "WeatherIntent",
     "timestamp": "2025-03-15T14:00:01Z",
     "duration": 850,
+    "cost_dollars": 0.0018,
     "queries_executed": 1,
     "api_requests_count": 2,
     "results_returned": 0,
@@ -167,7 +171,7 @@ Mathematical queries return a `calculation` object:
     "expression": "150 * 1.08",
     "result": "162"
   },
-  "metrics": { ... }
+  "metrics": { "..." : "..." }
 }
 ```
 
@@ -193,7 +197,7 @@ Image queries return an `images` array with thumbnail and dimension data:
       "height": "1080"
     }
   ],
-  "metrics": { ... }
+  "metrics": { "..." : "..." }
 }
 ```
 
@@ -232,16 +236,17 @@ See [query parameters](/features/query-parameters#intent-values) for the full li
 
 ## Metrics
 
-The response always includes a `metrics` object with search performance data:
+The response always includes a `metrics` object with performance and billing data:
 
 ```json
 {
-  "results": [...],
+  "results": ["..."],
   "metrics": {
     "query": "machine learning",
     "intent": "FallbackSearchIntent",
     "timestamp": "2025-03-15T14:00:01Z",
     "duration": 234,
+    "cost_dollars": 0.0043,
     "queries_executed": 1,
     "api_requests_count": 3,
     "results_returned": 10,
@@ -256,11 +261,86 @@ The response always includes a `metrics` object with search performance data:
 | `intent` | string | Detected or forced search intent |
 | `timestamp` | string | Timestamp of the request |
 | `duration` | number | Total request time in milliseconds |
+| `cost_dollars` | number | Amount charged for this request in USD |
 | `queries_executed` | integer | Number of queries executed |
 | `api_requests_count` | integer | Number of API requests made |
 | `results_returned` | integer | Results returned in this response |
 | `total_results_found` | integer | Total results found across sources |
-| `cached` | boolean | Whether response was from cache (only present on cache hits) |
+| `cached` | boolean | Whether this response was served from cache. Only present on cache hits. |
+| `cache_age_seconds` | number | How old the cached response is, in seconds. Only present on cache hits. |
+
+## Context format
+
+With `format=context`, the API returns results as markdown with YAML frontmatter instead of JSON. This format is sized for LLM context windows and can be passed directly to a language model without JSON parsing.
+
+```bash
+curl "https://api.andiai.com/api/v1/search?q=climate+change+effects&format=context" \
+  -H "x-api-key: YOUR_API_KEY"
+```
+
+### Document-level frontmatter
+
+The response starts with a YAML frontmatter block describing the search:
+
+```yaml
+---
+format: "andi-context/v1"
+query: "climate change effects"
+results_count: 10
+timestamp: "2026-07-14T21:30:00Z"
+search_mode: "auto"
+cost_dollars: 0.0043
+cached: false
+response_time_ms: 1240
+---
+```
+
+| Field | Always present | Description |
+|---|---|---|
+| `format` | Yes | Always `"andi-context/v1"` |
+| `query` | Yes | The search query |
+| `results_count` | Yes | Number of results |
+| `timestamp` | Yes | Request timestamp |
+| `intent` | When available | Detected search intent |
+| `results_type` | When available | Type of results |
+| `corrected_query` | When available | Spell-corrected query |
+| `related_searches` | When available | Related search suggestions |
+| `topics` | When available | Related topics |
+| `search_mode` | When available | Search mode used |
+| `cost_dollars` | When available | Amount charged in USD |
+| `cached` | When available | Whether response was from cache |
+| `cache_age_seconds` | When available | Cache age in seconds |
+| `response_time_ms` | When available | Response time (omitted on cache hits) |
+
+### Per-result structure
+
+Each result renders as an `<article>` block with its own frontmatter:
+
+```text
+<article source="example.com" rank="1">
+---
+title: "Climate Change Effects on Global Agriculture"
+url: https://example.com/climate-agriculture
+date: 2026-06-10
+source: example.com
+author: Dr. Sarah Chen
+---
+
+Climate change is altering growing seasons and precipitation patterns across
+major agricultural regions...
+
+<extracts>
+Rising temperatures have shifted planting windows by 2-3 weeks in temperate
+zones over the past decade.
+</extracts>
+</article>
+```
+
+With `metadata=full`, each article's frontmatter adds `domain`, `publisher`, `type`, `content_type`, `lang`, `word_count`, `image`, `keywords`, and `summary` when available.
+
+### Extracts in context format
+
+`extracts` defaults to **on** for `format=context` (the opposite of JSON, where it defaults to off). To disable extracts in context format, pass `extracts=false`.
 
 ## Next steps
 
@@ -268,7 +348,13 @@ The response always includes a `metrics` object with search performance data:
   <Card title="Query parameters" icon="sliders" href="/features/query-parameters">
     Full parameter reference.
   </Card>
+  <Card title="Content retrieval" icon="file-lines" href="/search/content-retrieval">
+    Fetch full page content from any URL.
+  </Card>
   <Card title="RAG pipeline" icon="brain" href="/examples/rag-pipeline">
     Use search results as LLM context.
+  </Card>
+  <Card title="Build with AI agents" icon="robot" href="/resources/ai-agents">
+    MCP server and agent integration.
   </Card>
 </CardGroup>

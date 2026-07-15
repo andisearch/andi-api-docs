@@ -1,0 +1,123 @@
+---
+title: Search modes
+description: Control the speed, depth, and cost of each search with the searchMode parameter.
+icon: gauge-high
+keywords:
+  - searchMode
+  - search modes
+  - auto mode
+  - fast search
+  - deep search
+  - exhaustive search
+  - outcome-based pricing
+---
+
+The `searchMode` parameter controls how much work the API does for each query. Lighter modes return faster and cost less. Deeper modes search from more angles and spend more time finding results.
+
+Every response includes `metrics.cost_dollars` — the actual amount charged for that request.
+
+## Modes
+
+| Mode | Typical response | What it does |
+|---|---|---|
+| `auto` (default) | Varies | Picks a mode based on your query. Simple lookups resolve fast; complex questions get deeper treatment. |
+| `fast` | ~1s | Single-pass search. Lowest latency, lowest cost. |
+| `low-cost` | ~1–2s | Budget-constrained search. More coverage than `fast`, with a cost ceiling. |
+| `deep` | ~2–3s | Searches from multiple angles. Spell correction. Higher-quality results for complex queries. |
+| `exhaustive` | Up to ~15s | Multi-round agentic retrieval. Keeps searching until it finds strong matches. Use for research-grade thoroughness. |
+
+```bash
+curl "https://api.andiai.com/api/v1/search?q=climate+change+effects&searchMode=deep" \
+  -H "x-api-key: YOUR_API_KEY"
+```
+
+When you omit `searchMode`, the API defaults to `auto` — it reads your query and picks the right mode. For most applications, `auto` is the right choice.
+
+## Choosing a mode
+
+Use `fast` when latency matters most: autocomplete, real-time UIs, high-volume batch jobs.
+
+Use `deep` when result quality matters more than speed: research questions, multi-faceted topics, queries that might contain typos.
+
+Use `exhaustive` for tasks where missing a result is worse than waiting: due diligence, competitive analysis, literature review.
+
+Use `low-cost` when you want broader coverage than `fast` but need to keep per-call spend down.
+
+## Pricing
+
+Requests using `searchMode` (or no mode parameter at all) are priced on outcome: the charge reflects the actual work the search performed. Simpler queries that resolve quickly cost less. The billed amount is returned in every response as `metrics.cost_dollars` (JSON) or `cost_dollars` in the frontmatter (`format=context`).
+
+```json
+{
+  "metrics": {
+    "cost_dollars": 0.0043,
+    "duration": 1240,
+    "results_returned": 10
+  }
+}
+```
+
+### Legacy `depth` parameter
+
+The `depth` parameter (`fast` or `deep`) still works. If you pass `depth` without `searchMode`, billing uses fixed per-call rates: $0.007 for `depth=fast`, $0.025 for `depth=deep`.
+
+When both `searchMode` and `depth` are present, `searchMode` wins.
+
+## The `reranker` parameter
+
+The `reranker` parameter controls the strength of semantic reranking applied to your results:
+
+| Value | Reranking strength |
+|---|---|
+| `auto` (default) | Chosen based on query and mode |
+| `small` | Light reranking, fastest |
+| `medium` | Moderate reranking |
+| `large` | Strong reranking |
+| `xl` | Strongest reranking — requires a `deep` or `exhaustive` mode budget |
+
+Stronger reranking improves result ordering for complex or ambiguous queries, at the cost of additional latency. The `auto` default picks an appropriate level based on your `searchMode` and query.
+
+```bash
+curl "https://api.andiai.com/api/v1/search?q=effects+of+sleep+deprivation+on+cognition&searchMode=deep&reranker=large" \
+  -H "x-api-key: YOUR_API_KEY"
+```
+
+## Examples
+
+### Fast mode for a real-time UI
+
+```bash
+curl "https://api.andiai.com/api/v1/search?q=USD+to+EUR&searchMode=fast" \
+  -H "x-api-key: YOUR_API_KEY"
+```
+
+### Deep mode with spell correction
+
+```bash
+curl "https://api.andiai.com/api/v1/search?q=quantm+computing+applications&searchMode=deep" \
+  -H "x-api-key: YOUR_API_KEY"
+```
+
+### Exhaustive mode for research
+
+```bash
+curl "https://api.andiai.com/api/v1/search?q=CRISPR+gene+therapy+clinical+trials+2026&searchMode=exhaustive&limit=40" \
+  -H "x-api-key: YOUR_API_KEY"
+```
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Fast mode" icon="bolt" href="/search/fast-search">
+    When to use fast mode and what to expect.
+  </Card>
+  <Card title="Deep mode" icon="microscope" href="/search/deep-search">
+    Multi-angle search with spell correction.
+  </Card>
+  <Card title="Query parameters" icon="sliders" href="/features/query-parameters">
+    Full parameter reference.
+  </Card>
+  <Card title="Response format" icon="brackets-curly" href="/features/response-format">
+    Response structure and metrics fields.
+  </Card>
+</CardGroup>

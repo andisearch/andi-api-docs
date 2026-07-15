@@ -16,11 +16,11 @@ The Andi AI Search API gives your applications access to web search results scor
   <Card title="Quickstart" icon="rocket" href="/getting-started/quickstart">
     Make your first API call in minutes.
   </Card>
-  <Card title="Fast search" icon="bolt" href="/search/fast-search">
-    Default mode — results in ~1 second.
+  <Card title="Search modes" icon="gauge-high" href="/search/search-modes">
+    Control speed, depth, and cost.
   </Card>
-  <Card title="Deep search" icon="microscope" href="/search/deep-search">
-    Enhanced analysis with more sources.
+  <Card title="For AI agents" icon="robot" href="/resources/ai-agents">
+    MCP server, install.md, and agent tools.
   </Card>
   <Card title="Examples" icon="code" href="/examples/basic-search">
     Working code for common use cases.
@@ -30,7 +30,7 @@ The Andi AI Search API gives your applications access to web search results scor
 ## Base URL
 
 ```text
-https://search-api.andisearch.com
+https://api.andiai.com
 ```
 
 ## Authentication
@@ -38,7 +38,7 @@ https://search-api.andisearch.com
 All requests require an API key passed in the `x-api-key` header. Get your key from the [API Console](https://console.andiai.com).
 
 ```bash
-curl "https://search-api.andisearch.com/api/v1/search?q=hello+world" \
+curl "https://api.andiai.com/api/v1/search?q=hello+world" \
   -H "x-api-key: YOUR_API_KEY"
 ```
 

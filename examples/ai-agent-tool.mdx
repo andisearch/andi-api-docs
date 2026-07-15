@@ -1,19 +1,38 @@
 ---
 title: AI agent tool
-description: Define Andi search as a tool or function for an AI agent framework.
+description: Connect an AI agent to Andi search via MCP, or define search and fetch as tools for any agent framework.
 icon: robot
 keywords:
   - AI agent search tool
   - function calling
   - tool use
   - agent web search
+  - MCP
+  - fetch
+  - searchMode
 ---
 
-AI agents use tool definitions to decide when and how to call external services. This example shows how to define Andi search as a tool that your agent can invoke to retrieve current web information.
+There are two ways to give your AI agent web search: connect the MCP server (zero code), or define search and fetch as tool functions in your framework.
 
-## Tool definition
+## MCP server (recommended)
 
-Define the search tool with a description, parameters, and expected output:
+The fastest path is to point your agent at the install guide. It will configure itself:
+
+```text
+https://api.andiai.com/install.md
+```
+
+Or connect directly — for example, in Claude Code:
+
+```bash
+claude mcp add --transport http andi https://api.andiai.com/mcp --header "x-api-key: YOUR_API_KEY"
+```
+
+The MCP server exposes two tools: `andi_web_search` and `andi_fetch_url`. Your agent can search the web and then fetch full page content from any result. See [Build with AI agents](/resources/ai-agents) for setup snippets for Cursor, VS Code, Codex, and other clients.
+
+## Tool definition (custom frameworks)
+
+If your agent framework uses function/tool definitions instead of MCP, define the search tool with parameters and expected output:
 
 <CodeGroup>
 
@@ -33,6 +52,11 @@ search_tool = {
                 "limit": {
                     "type": "integer",
                     "description": "Number of results (1-100, default 10)",
+                },
+                "searchMode": {
+                    "type": "string",
+                    "enum": ["auto", "fast", "low-cost", "deep", "exhaustive"],
+                    "description": "Search mode. auto (default) picks per query; fast for speed, deep for thoroughness",
                 },
             },
             "required": ["query"],
@@ -59,6 +83,11 @@ const searchTool = {
           type: "integer",
           description: "Number of results (1-100, default 10)",
         },
+        searchMode: {
+          type: "string",
+          enum: ["auto", "fast", "low-cost", "deep", "exhaustive"],
+          description: "Search mode. auto (default) picks per query; fast for speed, deep for thoroughness",
+        },
       },
       required: ["query"],
     },
@@ -82,11 +111,11 @@ import requests
 api_key = os.environ["ANDI_API_KEY"]
 
 
-def execute_web_search(query: str, limit: int = 5) -> str:
+def execute_web_search(query: str, limit: int = 5, searchMode: str = "auto") -> str:
     """Execute a web search and return formatted results."""
     response = requests.get(
-        "https://search-api.andisearch.com/api/v1/search",
-        params={"q": query, "limit": limit, "extracts": "true"},
+        "https://api.andiai.com/api/v1/search",
+        params={"q": query, "limit": limit, "searchMode": searchMode, "extracts": "true"},
         headers={"x-api-key": api_key},
     )
 
@@ -111,10 +140,11 @@ def execute_web_search(query: str, limit: int = 5) -> str:
 ```javascript JavaScript
 const apiKey = process.env.ANDI_API_KEY;
 
-async function executeWebSearch(query, limit = 5) {
-  const url = new URL("https://search-api.andisearch.com/api/v1/search");
+async function executeWebSearch(query, limit = 5, searchMode = "auto") {
+  const url = new URL("https://api.andiai.com/api/v1/search");
   url.searchParams.set("q", query);
   url.searchParams.set("limit", String(limit));
+  url.searchParams.set("searchMode", searchMode);
   url.searchParams.set("extracts", "true");
 
   const response = await fetch(url, {
@@ -139,6 +169,38 @@ async function executeWebSearch(query, limit = 5) {
 ```
 
 </CodeGroup>
+
+## Search then fetch workflow
+
+An agent can search for results, then fetch full content from the most relevant page:
+
+```python
+def search_and_fetch(query: str) -> str:
+    """Search, then fetch the top result's full content."""
+    # Step 1: Search
+    search_resp = requests.get(
+        "https://api.andiai.com/api/v1/search",
+        params={"q": query, "limit": 3, "searchMode": "deep"},
+        headers={"x-api-key": api_key},
+    )
+    results = search_resp.json()["results"]
+    if not results:
+        return "No results found."
+
+    # Step 2: Fetch the top result
+    fetch_resp = requests.get(
+        "https://api.andiai.com/api/v1/fetch",
+        params={"url": results[0]["link"], "format": "context"},
+        headers={"x-api-key": api_key},
+    )
+
+    if fetch_resp.status_code == 200:
+        return fetch_resp.text
+    elif fetch_resp.status_code == 503:
+        return "Page is still loading — retry shortly."
+    else:
+        return f"Could not fetch page (status {fetch_resp.status_code})."
+```
 
 ## Putting it together
 
@@ -192,7 +254,7 @@ For agents that pass search results directly into conversation context, `format=
 def execute_web_search_context(query: str) -> str:
     """Return search results as markdown text."""
     response = requests.get(
-        "https://search-api.andisearch.com/api/v1/search",
+        "https://api.andiai.com/api/v1/search",
         params={"q": query, "format": "context", "limit": 5},
         headers={"x-api-key": api_key},
     )
@@ -203,21 +265,17 @@ def execute_web_search_context(query: str) -> str:
 `format=context` reduces the code in your tool executor — no JSON parsing or formatting needed. The tradeoff is less control over result structure.
 </Tip>
 
-## Other agent frameworks
-
-The same pattern works with any agent framework. See [Build with AI agents](/resources/ai-agents) for MCP server integration, which lets tools like Claude Code and Cursor access the docs directly.
-
 ## Next steps
 
 <CardGroup cols={2}>
   <Card title="Build with AI agents" icon="robot" href="/resources/ai-agents">
-    MCP server, llms.txt, and markdown access.
+    MCP server setup for Claude Code, Cursor, and more.
   </Card>
-  <Card title="RAG pipeline" icon="brain" href="/examples/rag-pipeline">
-    Search as retrieval context for LLMs.
+  <Card title="Content retrieval" icon="file-lines" href="/search/content-retrieval">
+    Full fetch endpoint reference.
   </Card>
-  <Card title="Query parameters" icon="sliders" href="/features/query-parameters">
-    Full parameter reference.
+  <Card title="Search modes" icon="gauge-high" href="/search/search-modes">
+    Choose the right mode for your agent's needs.
   </Card>
   <Card title="Error handling" icon="triangle-exclamation" href="/resources/error-handling">
     Error codes and retry strategies.

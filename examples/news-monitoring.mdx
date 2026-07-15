@@ -17,7 +17,7 @@ This example builds a news monitoring system that searches for recent articles o
 
 ```bash curl
 # Search for AI news from the past 24 hours
-curl -s "https://search-api.andisearch.com/api/v1/search?q=artificial+intelligence&intent=news&dateRange=24h&limit=10" \
+curl -s "https://api.andiai.com/api/v1/search?q=artificial+intelligence&intent=news&dateRange=24h&limit=10" \
   -H "x-api-key: $ANDI_API_KEY" | jq '.results[] | {title, link, date, source}'
 ```
 
@@ -41,7 +41,7 @@ def search_news(topic: str, date_range: str = "24h", domains: list[str] | None =
         params["includeDomains"] = ",".join(domains)
 
     response = requests.get(
-        "https://search-api.andisearch.com/api/v1/search",
+        "https://api.andiai.com/api/v1/search",
         params=params,
         headers={"x-api-key": api_key},
     )
@@ -80,7 +80,7 @@ for topic in topics:
 const apiKey = process.env.ANDI_API_KEY;
 
 async function searchNews(topic, dateRange = "24h", domains = null) {
-  const url = new URL("https://search-api.andisearch.com/api/v1/search");
+  const url = new URL("https://api.andiai.com/api/v1/search");
   url.searchParams.set("q", topic);
   url.searchParams.set("intent", "news");
   url.searchParams.set("dateRange", dateRange);
@@ -159,7 +159,7 @@ Remove noisy domains from results:
 
 ```python
 response = requests.get(
-    "https://search-api.andisearch.com/api/v1/search",
+    "https://api.andiai.com/api/v1/search",
     params={
         "q": "AI startups funding",
         "intent": "news",
@@ -176,7 +176,7 @@ Search a specific time window:
 
 ```python
 response = requests.get(
-    "https://search-api.andisearch.com/api/v1/search",
+    "https://api.andiai.com/api/v1/search",
     params={
         "q": "product launch",
         "intent": "news",

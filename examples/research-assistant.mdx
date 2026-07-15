@@ -17,7 +17,7 @@ This example builds a research assistant that searches multiple related queries,
 
 ```bash curl
 # Multi-query search with a JSON array
-curl -G -s "https://search-api.andisearch.com/api/v1/search" \
+curl -G -s "https://api.andiai.com/api/v1/search" \
   --data-urlencode 'q=["quantum computing applications", "quantum computing challenges", "quantum computing 2025"]' \
   -d "depth=deep" \
   -d "limit=10" \
@@ -43,7 +43,7 @@ def research(queries: list[str], depth: str = "deep", limit: int = 10) -> dict:
 
     for query in queries:
         response = requests.get(
-            "https://search-api.andisearch.com/api/v1/search",
+            "https://api.andiai.com/api/v1/search",
             params={
                 "q": query,
                 "depth": depth,
@@ -102,7 +102,7 @@ async function research(queries, depth = "deep", limit = 10) {
   const correctedQueries = {};
 
   for (const query of queries) {
-    const url = new URL("https://search-api.andisearch.com/api/v1/search");
+    const url = new URL("https://api.andiai.com/api/v1/search");
     url.searchParams.set("q", query);
     url.searchParams.set("depth", depth);
     url.searchParams.set("limit", String(limit));
@@ -178,7 +178,7 @@ The API also supports passing a JSON array of up to 5 queries in the `q` paramet
 import json
 
 response = requests.get(
-    "https://search-api.andisearch.com/api/v1/search",
+    "https://api.andiai.com/api/v1/search",
     params={
         "q": json.dumps([
             "quantum computing applications",
@@ -220,7 +220,7 @@ Or use `includeDomains` to restrict at the API level:
 
 ```python
 response = requests.get(
-    "https://search-api.andisearch.com/api/v1/search",
+    "https://api.andiai.com/api/v1/search",
     params={
         "q": "quantum computing",
         "depth": "deep",

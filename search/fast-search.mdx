@@ -1,19 +1,21 @@
 ---
-title: Fast search
+title: Fast mode
 description: Default search mode optimized for speed, returning results in ~1 second.
 icon: bolt
 keywords:
   - fast search API
   - low latency search
   - real-time search API
+  - fast mode
+  - searchMode fast
 ---
 
-Fast search is the default mode. It returns results in approximately 1 second, making it suitable for real-time applications and high-volume workloads.
+Fast mode is the default. It returns results in about 1 second, making it the right choice for real-time applications and high-volume workloads.
 
 <CodeGroup>
 
 ```bash curl
-curl "https://search-api.andisearch.com/api/v1/search?q=latest+AI+news" \
+curl "https://api.andiai.com/api/v1/search?q=latest+AI+news&searchMode=fast" \
   -H "x-api-key: YOUR_API_KEY"
 ```
 
@@ -21,8 +23,8 @@ curl "https://search-api.andisearch.com/api/v1/search?q=latest+AI+news" \
 import requests
 
 response = requests.get(
-    "https://search-api.andisearch.com/api/v1/search",
-    params={"q": "latest AI news"},
+    "https://api.andiai.com/api/v1/search",
+    params={"q": "latest AI news", "searchMode": "fast"},
     headers={"x-api-key": "YOUR_API_KEY"}
 )
 
@@ -33,7 +35,7 @@ for result in data["results"]:
 
 ```javascript JavaScript
 const response = await fetch(
-  "https://search-api.andisearch.com/api/v1/search?q=latest+AI+news",
+  "https://api.andiai.com/api/v1/search?q=latest+AI+news&searchMode=fast",
   { headers: { "x-api-key": "YOUR_API_KEY" } }
 );
 
@@ -43,9 +45,9 @@ data.results.forEach(r => console.log(`${r.title} — ${r.source}`));
 
 </CodeGroup>
 
-Fast search is the default — no `depth` parameter is needed. Setting `depth=fast` explicitly has the same effect.
+Fast mode is the default — you get the same behavior by omitting `searchMode` entirely, or by using the legacy `depth=fast` parameter.
 
-## When to use fast search
+## When to use fast mode
 
 - Real-time search in user-facing applications
 - High-volume automated queries
@@ -73,6 +75,7 @@ Fast search is the default — no `depth` parameter is needed. Setting `depth=fa
     "query": "latest AI news",
     "intent": "LatestNewsIntent",
     "duration": 890,
+    "cost_dollars": 0.0031,
     "results_returned": 10,
     "total_results_found": 50
   }
@@ -91,8 +94,9 @@ print(data["results_type"])  # e.g., "news", "search", "images"
 for result in data["results"]:
     print(result["title"], result["link"])
 
-# Check performance
+# Check performance and cost
 print(f"Returned {data['metrics']['results_returned']} results in {data['metrics']['duration']}ms")
+print(f"Cost: ${data['metrics']['cost_dollars']}")
 ```
 
 <Accordion title="Adding extracts and metadata">
@@ -100,15 +104,15 @@ Get richer data from each result:
 
 ```bash
 # Text extracts from result pages
-curl "https://search-api.andisearch.com/api/v1/search?q=latest+AI+news&extracts=true" \
+curl "https://api.andiai.com/api/v1/search?q=latest+AI+news&extracts=true" \
   -H "x-api-key: YOUR_API_KEY"
 
 # Full metadata including content type and reader data
-curl "https://search-api.andisearch.com/api/v1/search?q=latest+AI+news&metadata=full" \
+curl "https://api.andiai.com/api/v1/search?q=latest+AI+news&metadata=full" \
   -H "x-api-key: YOUR_API_KEY"
 
 # Markdown format for passing to LLMs
-curl "https://search-api.andisearch.com/api/v1/search?q=latest+AI+news&format=context" \
+curl "https://api.andiai.com/api/v1/search?q=latest+AI+news&format=context" \
   -H "x-api-key: YOUR_API_KEY"
 ```
 
@@ -117,9 +121,9 @@ curl "https://search-api.andisearch.com/api/v1/search?q=latest+AI+news&format=co
 </Warning>
 </Accordion>
 
-## Fast search vs. deep search
+## Fast mode vs. deep mode
 
-| | Fast search | Deep search |
+| | Fast mode | Deep mode |
 |---|---|---|
 | Response time | ~1 second | ~2–3 seconds |
 | Spell correction | No | Yes |
@@ -127,22 +131,22 @@ curl "https://search-api.andisearch.com/api/v1/search?q=latest+AI+news&format=co
 | Result quality | Good | Thorough |
 
 <Tip>
-Start with fast search. Switch to deep search when you need results a quick search might miss, or when thoroughness matters more than speed.
+Start with fast mode. Switch to deep mode when you need results a quick search might miss, or when thoroughness matters more than speed. See [search modes](/search/search-modes) for the full set of modes.
 </Tip>
 
 ## Next steps
 
 <CardGroup cols={2}>
-  <Card title="Deep search" icon="microscope" href="/search/deep-search">
-    Enhanced search with spell correction and more sources.
+  <Card title="Deep mode" icon="microscope" href="/search/deep-search">
+    Multi-angle search with spell correction.
   </Card>
-  <Card title="Query parameters" icon="sliders" href="/features/query-parameters">
-    Full parameter reference.
+  <Card title="Search modes" icon="gauge-high" href="/search/search-modes">
+    All five modes compared.
   </Card>
   <Card title="Basic search example" icon="code" href="/examples/basic-search">
     Complete integration with error handling.
   </Card>
   <Card title="Response format" icon="brackets-curly" href="/features/response-format">
-    Understand the response structure.
+    Response structure and metrics.
   </Card>
 </CardGroup>

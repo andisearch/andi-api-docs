@@ -19,7 +19,7 @@ Restrict results to specific domains or exclude unwanted ones.
 Return results only from the specified domains:
 
 ```bash
-curl "https://search-api.andisearch.com/api/v1/search?q=python+tutorials&includeDomains=docs.python.org,realpython.com" \
+curl "https://api.andiai.com/api/v1/search?q=python+tutorials&includeDomains=docs.python.org,realpython.com" \
   -H "x-api-key: YOUR_API_KEY"
 ```
 
@@ -28,7 +28,7 @@ curl "https://search-api.andisearch.com/api/v1/search?q=python+tutorials&include
 Remove specific domains from results:
 
 ```bash
-curl "https://search-api.andisearch.com/api/v1/search?q=python+tutorials&excludeDomains=w3schools.com,pinterest.com" \
+curl "https://api.andiai.com/api/v1/search?q=python+tutorials&excludeDomains=w3schools.com,pinterest.com" \
   -H "x-api-key: YOUR_API_KEY"
 ```
 
@@ -54,7 +54,7 @@ Use `dateRange` for common time windows:
 
 ```bash
 # Results from the past week
-curl "https://search-api.andisearch.com/api/v1/search?q=tech+news&dateRange=week" \
+curl "https://api.andiai.com/api/v1/search?q=tech+news&dateRange=week" \
   -H "x-api-key: YOUR_API_KEY"
 ```
 
@@ -66,7 +66,7 @@ Use `dateFrom` and `dateTo` for specific date boundaries:
 
 ```bash
 # Results from Q1 2025
-curl "https://search-api.andisearch.com/api/v1/search?q=quarterly+earnings&dateFrom=2025-01-01&dateTo=2025-03-31" \
+curl "https://api.andiai.com/api/v1/search?q=quarterly+earnings&dateFrom=2025-01-01&dateTo=2025-03-31" \
   -H "x-api-key: YOUR_API_KEY"
 ```
 
@@ -82,7 +82,7 @@ Filter by file type or where terms appear on the page.
 ### File type
 
 ```bash
-curl "https://search-api.andisearch.com/api/v1/search?q=annual+report&filetype=pdf" \
+curl "https://api.andiai.com/api/v1/search?q=annual+report&filetype=pdf" \
   -H "x-api-key: YOUR_API_KEY"
 ```
 
@@ -104,7 +104,7 @@ curl "https://search-api.andisearch.com/api/v1/search?q=annual+report&filetype=p
 Filters stack — combine them to narrow results precisely:
 
 ```bash
-curl "https://search-api.andisearch.com/api/v1/search?q=machine+learning&includeDomains=arxiv.org,github.com&dateRange=month&filetype=pdf&limit=20" \
+curl "https://api.andiai.com/api/v1/search?q=machine+learning&includeDomains=arxiv.org,github.com&dateRange=month&filetype=pdf&limit=20" \
   -H "x-api-key: YOUR_API_KEY"
 ```
 

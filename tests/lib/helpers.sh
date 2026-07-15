@@ -50,7 +50,7 @@ setup() {
   fi
 
   # Set API base after .env is loaded
-  API_BASE="${ANDI_API_BASE:-https://search-api.andisearch.com}"
+  API_BASE="${ANDI_API_BASE:-https://api.andiai.com}"
 
   # Create temp file for response bodies
   RESPONSE_FILE=$(mktemp)
@@ -73,6 +73,25 @@ api_get() {
   sleep "$RATE_LIMIT_DELAY"
 
   local url="${API_BASE}${API_ENDPOINT}"
+  if [[ -n "$params" ]]; then
+    url="${url}?${params}"
+  fi
+
+  HTTP_STATUS=$(curl -s -o "$RESPONSE_FILE" -w "%{http_code}" \
+    -H "x-api-key: ${api_key}" \
+    "$url")
+}
+
+# Make a GET request to an arbitrary endpoint
+# Usage: api_get_endpoint "/api/v1/fetch" "url=https://example.com/"
+api_get_endpoint() {
+  local endpoint="$1"
+  local params="${2:-}"
+  local api_key="${3:-$ANDI_API_KEY}"
+
+  sleep "$RATE_LIMIT_DELAY"
+
+  local url="${API_BASE}${endpoint}"
   if [[ -n "$params" ]]; then
     url="${url}?${params}"
   fi

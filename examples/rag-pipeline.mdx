@@ -25,7 +25,7 @@ Retrieval-augmented generation (RAG) pairs a search retrieval step with an LLM g
 ```bash curl
 # Step 1: Search
 results=$(curl -s \
-  "https://search-api.andisearch.com/api/v1/search?q=what+causes+aurora+borealis&extracts=true&limit=5" \
+  "https://api.andiai.com/api/v1/search?q=what+causes+aurora+borealis&extracts=true&limit=5" \
   -H "x-api-key: $ANDI_API_KEY")
 
 # Step 2: Format context (extract titles and descriptions)
@@ -44,7 +44,7 @@ api_key = os.environ["ANDI_API_KEY"]
 
 # Step 1: Search for context
 search_response = requests.get(
-    "https://search-api.andisearch.com/api/v1/search",
+    "https://api.andiai.com/api/v1/search",
     params={
         "q": "what causes aurora borealis",
         "extracts": "true",
@@ -85,7 +85,7 @@ print(prompt)
 const apiKey = process.env.ANDI_API_KEY;
 
 // Step 1: Search for context
-const url = new URL("https://search-api.andisearch.com/api/v1/search");
+const url = new URL("https://api.andiai.com/api/v1/search");
 url.searchParams.set("q", "what causes aurora borealis");
 url.searchParams.set("extracts", "true");
 url.searchParams.set("limit", "5");
@@ -124,7 +124,7 @@ For simpler RAG setups, use `format=context` to get results pre-formatted as mar
 
 ```python
 response = requests.get(
-    "https://search-api.andisearch.com/api/v1/search",
+    "https://api.andiai.com/api/v1/search",
     params={
         "q": "what causes aurora borealis",
         "format": "context",
@@ -147,7 +147,7 @@ For research-heavy queries, deep search provides broader source coverage and spe
 
 ```python
 response = requests.get(
-    "https://search-api.andisearch.com/api/v1/search",
+    "https://api.andiai.com/api/v1/search",
     params={
         "q": "what causes aurora borealis",
         "depth": "deep",
