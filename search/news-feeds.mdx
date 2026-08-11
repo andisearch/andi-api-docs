@@ -1,0 +1,179 @@
+---
+title: News feeds
+description: Curated, ranked topic news feeds with the /api/v1/news/:topic endpoint — no query required.
+icon: rss
+keywords:
+  - news API
+  - news feed API
+  - curated news
+  - topic news feed
+  - breaking news API
+---
+
+The news endpoint returns a curated, ranked feed of recent headlines for a fixed topic. There is no `q` parameter — the topic in the URL path selects the feed:
+
+```bash
+curl "https://api.andiai.com/api/v1/news/technology" \
+  -H "x-api-key: YOUR_API_KEY"
+```
+
+This is a fast path for "give me the latest on X" requests — one call in place of a search-then-fetch loop.
+
+## Topics
+
+`topic` is a path segment: `GET /api/v1/news/:topic`. 22 topics are available.
+
+| Category | Topics |
+|---|---|
+| News | `technology`, `business`, `finance`, `politics`, `sports`, `health`, `science`, `world`, `entertainment`, `us` |
+| Regions | `europe`, `uk`, `asia`, `middle-east`, `africa`, `latin-america`, `australia` |
+| Extended | `programming`, `startups` |
+| Curated groups | `hn-frontpage`, `ai-news`, `tech-news` |
+
+An unknown topic returns `404` with the full list of valid slugs — see [unknown topics](#unknown-topics) below.
+
+## Parameters
+
+| Parameter | Type | Default | Description |
+|---|---|---|---|
+| `limit` | integer | 20 | Number of results to return. Clamped to 1–50. |
+| `noCache` | boolean | `false` | Bypass the cache and fetch a fresh feed. |
+
+## Response
+
+The response uses the same shape as [`/api/v1/search`](/features/response-format): `title`, `results`, `metrics`, and (when available) `images`. A `news` array is always present.
+
+| Field | Description |
+|---|---|
+| `title` | Plain-language description of the feed, e.g. "Latest technology news and breaking tech industry headlines" |
+| `results` | Articles ordered by relevance — a semantic pass tuned to the topic, weighted toward fresher articles |
+| `news` | The same articles in strict reverse-chronological order (newest first) |
+| `images` | Article images, in the order of `results`, when the underlying articles carry one |
+| `metrics` | Request metrics — see [response format](/features/response-format#metrics) and [pricing](#pricing) below for the billing fields |
+
+```json
+{
+  "results_type": "Search",
+  "answer": "",
+  "type": "Search",
+  "title": "Latest world news and breaking international headlines",
+  "results": [
+    {
+      "title": "Ceasefire talks resume after week-long pause",
+      "link": "https://example-news.com/world/ceasefire-talks-resume",
+      "desc": "Negotiators returned to the table Monday after diplomatic efforts stalled last week.",
+      "source": "example-news.com",
+      "date": "2026-07-27T14:32:00Z"
+    },
+    {
+      "title": "Central bank holds rates steady amid inflation concerns",
+      "link": "https://example-wire.com/economy/central-bank-holds-rates",
+      "desc": "Policymakers cited persistent inflation as the reason for pausing further cuts.",
+      "source": "example-wire.com",
+      "date": "2026-07-27T11:05:00Z"
+    }
+  ],
+  "news": [
+    {
+      "title": "Ceasefire talks resume after week-long pause",
+      "link": "https://example-news.com/world/ceasefire-talks-resume",
+      "desc": "Negotiators returned to the table Monday after diplomatic efforts stalled last week.",
+      "source": "example-news.com",
+      "date": "2026-07-27T14:32:00Z"
+    },
+    {
+      "title": "Central bank holds rates steady amid inflation concerns",
+      "link": "https://example-wire.com/economy/central-bank-holds-rates",
+      "desc": "Policymakers cited persistent inflation as the reason for pausing further cuts.",
+      "source": "example-wire.com",
+      "date": "2026-07-27T11:05:00Z"
+    }
+  ],
+  "images": [
+    {
+      "title": "Ceasefire talks resume after week-long pause",
+      "link": "https://example-news.com/world/ceasefire-talks-resume",
+      "image": "https://example-news.com/images/ceasefire-talks.jpg",
+      "source": "example-news.com",
+      "type": "image",
+      "thumbnail": "https://example-news.com/images/ceasefire-talks_thumb.jpg",
+      "width": "1280",
+      "height": "720"
+    }
+  ],
+  "metrics": {
+    "query": "world",
+    "intent": "NewsSearchIntent",
+    "timestamp": "2026-07-27T14:35:02.101Z",
+    "duration": 412,
+    "queries_executed": 1,
+    "api_requests_count": 1,
+    "results_returned": 2,
+    "total_results_found": 2,
+    "cost_dollars": 0.00071,
+    "vendor_cost_dollars": 0.0004,
+    "pricing_model": "dynamic"
+  }
+}
+```
+
+`results` and `news` contain the same articles — only the order differs. Reach for `results` when you want the best headlines first, and `news` when you want a chronological feed.
+
+## Unknown topics
+
+Requesting a topic that doesn't exist returns `404` with every valid slug, so a client can discover the full list from a single failed call:
+
+```json
+{
+  "error": "Unknown topic",
+  "message": "No curated news feed exists for topic 'crypto'.",
+  "valid_topics": [
+    "technology", "business", "finance", "politics", "sports", "health",
+    "science", "world", "entertainment", "us", "europe", "uk", "asia",
+    "middle-east", "africa", "latin-america", "australia", "programming",
+    "startups", "hn-frontpage", "ai-news", "tech-news"
+  ]
+}
+```
+
+## Errors
+
+| Status | Meaning |
+|---|---|
+| `404` | Unknown topic. The response includes `valid_topics`. |
+| `503` | The feed is temporarily unavailable. Retry shortly. |
+
+`401`, `402`, and `429` follow the same patterns as the search endpoint — see [error handling](/resources/error-handling).
+
+## Pricing
+
+News requests are billed the same way as a search request: a per-token rate on the returned content, with no flat per-call fee. The charge is returned in `metrics.cost_dollars`, the same field the search and fetch endpoints use.
+
+| Field | Description |
+|---|---|
+| `cost_dollars` | Amount charged to your account for this request in USD, after any discounts |
+| `vendor_cost_dollars` | The underlying cost before margin. `0` when the response required no billable vendor call — for example, a cache hit |
+| `pricing_model` | Always `dynamic` for this endpoint (cost-plus-margin) |
+
+Cache hits are billed the token rate only (no vendor call runs), and are marked `cached: true` in `metrics`, alongside `cache_age_seconds` — see [metrics](/features/response-format#metrics).
+
+## Use cases
+
+The news endpoint is built for fixed, recurring feed requests — the kind of thing a slash command or a scheduled agent job asks for repeatedly, like "latest world news" or "programming news." Because the topic is fixed, there's no query to construct and no need for a separate fetch pass to pull in full articles: one call returns a ranked, deduplicated, freshly-dated feed ready to hand to a user or an LLM.
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Response format" icon="brackets-curly" href="/features/response-format">
+    Full response structure and result fields.
+  </Card>
+  <Card title="Content retrieval" icon="file-lines" href="/search/content-retrieval">
+    Fetch the full text of any article returned in a feed.
+  </Card>
+  <Card title="News monitoring example" icon="newspaper" href="/examples/news-monitoring">
+    Build a query-driven news monitor with the search endpoint.
+  </Card>
+  <Card title="Error handling" icon="triangle-exclamation" href="/resources/error-handling">
+    Status codes and retry strategies.
+  </Card>
+</CardGroup>

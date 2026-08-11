@@ -3,7 +3,7 @@
   "info": {
     "title": "Andi AI Search API",
     "version": "1.7.0",
-    "description": "Web search and page-fetch API for people and AI agents. `GET`/`POST /api/v1/search` returns structured results with query operators, domain and date filtering, and multiple output formats. `GET /api/v1/fetch` retrieves and extracts a single page. Both endpoints support `format=context`, which returns markdown suited to language models. The `searchMode` parameter (`auto` default, plus `fast`, `low-cost`, `deep`, and `exhaustive`) controls search effort and latency; requests that use `searchMode` are billed on outcome-based pricing, reported per call in `metrics.cost_dollars`. `depth` (`fast`/`deep`) is a legacy alias kept for backward compatibility."
+    "description": "Web search and page-fetch API for people and AI agents. `GET`/`POST /api/v1/search` returns structured results with query operators, domain and date filtering, and multiple output formats. `GET /api/v1/fetch` retrieves and extracts a single page. `GET /api/v1/news/:topic` returns a curated, ranked news feed for one of 22 fixed topics — no query required. Search and fetch support `format=context`, which returns markdown suited to language models; the news endpoint returns JSON only. The `searchMode` parameter (`auto` default, plus `fast`, `low-cost`, `deep`, and `exhaustive`) controls search effort and latency; requests that use `searchMode` are billed on outcome-based pricing, reported per call in `metrics.cost_dollars`. `depth` (`fast`/`deep`) is a legacy alias kept for backward compatibility."
   },
   "servers": [
     {
@@ -976,6 +976,195 @@
           }
         }
       }
+    },
+    "/api/v1/news/{topic}": {
+      "get": {
+        "operationId": "getNewsFeed",
+        "summary": "Get a curated news feed",
+        "description": "Returns a curated, ranked news feed for a fixed topic — there is no query parameter, the topic path segment selects the feed. `results` are ordered by relevance (a semantic pass tuned to the topic, weighted toward fresher articles); `news` holds the same articles in strict reverse-chronological order. `images` includes article images when available.",
+        "parameters": [
+          {
+            "name": "topic",
+            "in": "path",
+            "required": true,
+            "description": "Topic slug selecting the feed.",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "technology",
+                "business",
+                "finance",
+                "politics",
+                "sports",
+                "health",
+                "science",
+                "world",
+                "entertainment",
+                "us",
+                "europe",
+                "uk",
+                "asia",
+                "middle-east",
+                "africa",
+                "latin-america",
+                "australia",
+                "programming",
+                "startups",
+                "hn-frontpage",
+                "ai-news",
+                "tech-news"
+              ]
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "description": "Number of results to return.",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 50,
+              "default": 20
+            }
+          },
+          {
+            "name": "noCache",
+            "in": "query",
+            "required": false,
+            "description": "Bypass the cache and fetch a fresh feed.",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Curated news feed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SearchResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized — missing or invalid API key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "Unauthorized",
+                  "message": "Invalid API key"
+                }
+              }
+            }
+          },
+          "402": {
+            "description": "Insufficient credits — account balance depleted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "Insufficient Credits",
+                  "message": "Your account has insufficient credits. Please add credits to continue."
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Unknown topic. The response includes the full list of valid topic slugs.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/Error"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "valid_topics": {
+                          "type": "array",
+                          "description": "Every valid topic slug.",
+                          "items": {
+                            "type": "string"
+                          }
+                        }
+                      },
+                      "required": [
+                        "valid_topics"
+                      ]
+                    }
+                  ]
+                },
+                "example": {
+                  "error": "Unknown topic",
+                  "message": "No curated news feed exists for topic 'crypto'.",
+                  "valid_topics": [
+                    "technology",
+                    "business",
+                    "finance",
+                    "politics",
+                    "sports",
+                    "health",
+                    "science",
+                    "world",
+                    "entertainment",
+                    "us",
+                    "europe",
+                    "uk",
+                    "asia",
+                    "middle-east",
+                    "africa",
+                    "latin-america",
+                    "australia",
+                    "programming",
+                    "startups",
+                    "hn-frontpage",
+                    "ai-news",
+                    "tech-news"
+                  ]
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "Too Many Requests",
+                  "message": "Rate limit of N requests per second exceeded"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "The feed is temporarily unavailable. Retriable.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "Service unavailable",
+                  "message": "The 'world' news feed is temporarily unavailable. Retry shortly."
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -1383,6 +1572,14 @@
           "cost_dollars": {
             "type": "number",
             "description": "Amount charged to your account for this request in USD, after any discounts. Outcome-based pricing (actual cost plus margin) applies to searchMode and default calls; legacy explicit depth=fast|deep calls are charged the fixed per-call rate."
+          },
+          "vendor_cost_dollars": {
+            "type": "number",
+            "description": "The underlying vendor cost for this request, before margin. Present on the news endpoint; 0 when no billable vendor call was made for this response (for example, a cache hit)."
+          },
+          "pricing_model": {
+            "type": "string",
+            "description": "Which pricing model priced this request. Present on the news endpoint, where it is always `dynamic` (cost-plus-margin, since news has no flat per-call tier)."
           }
         }
       },
