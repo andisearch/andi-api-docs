@@ -122,13 +122,17 @@ Any client that supports the Streamable HTTP transport can connect: server URL `
 
 ### `andi_web_search`
 
-Searches the web and returns LLM-ready markdown. Wraps `GET /api/v1/search` with `format=context`.
+Searches the web and returns LLM-ready markdown. Wraps `GET /api/v1/search` with `format=context` and `metadata=full`.
 
 | Parameter | Type | Default | Description |
 |---|---|---|---|
-| `q` | string | **required** | Search query. Supports [query operators](/features/query-operators). |
+| `q` | string | — | Search query. Supports [query operators](/features/query-operators). Required unless `queries` is supplied. |
+| `queries` | array of strings | — | Run up to 5 related queries in one call and get fused, deduplicated results. Alternative to `q` — supply exactly one of the two. |
 | `limit` | integer | `10` | Results to return (1–50) |
-| `depth` | string | `fast` | `fast` or `deep` |
+| `offset` | integer | `0` | Skip this many results — paginate deeper into an existing result set without re-searching |
+| `searchMode` | string | `auto` | Cost/speed/coverage dial: `auto`, `fast`, `low-cost`, `balanced`, `deep`, or `exhaustive`. `fast` ~1s lowest latency; `balanced` everyday web search; `deep` ~2–3s adds spell correction and more engines; `exhaustive` multi-round agentic retrieval (up to ~15s). |
+| `content` | boolean | `false` | Include cleaned page content for each result. Increases cost and tokens. |
+| `maxContentLength` | integer | — | Maximum content characters per result when `content=true` |
 | `country` | string | — | ISO 3166-1 country code (e.g., `US`, `GB`) |
 | `language` | string | — | ISO 639-1 language code (e.g., `en`, `es`) |
 | `safe` | string | — | Safe search: `off`, `moderate`, or `strict` |
@@ -140,6 +144,8 @@ Searches the web and returns LLM-ready markdown. Wraps `GET /api/v1/search` with
 The MCP tool caps `limit` at 50. The REST endpoint allows up to 100.
 </Note>
 
+Results always carry the `metadata=full` fields — `content_type`, `word_count`, `lang`, `publisher`, `summary` — in each result's frontmatter (see [response format](/features/response-format#per-result-structure)), plus a per-call `cost_dollars`. Results default to extracts; set `content=true` or follow up with `andi_fetch_url` only when extracts aren't enough.
+
 ### `andi_fetch_url`
 
 Fetches a web page and returns its content as LLM-ready markdown. Wraps `GET /api/v1/fetch`.
@@ -147,9 +153,21 @@ Fetches a web page and returns its content as LLM-ready markdown. Wraps `GET /ap
 | Parameter | Type | Default | Description |
 |---|---|---|---|
 | `url` | string | **required** | URL to fetch |
+| `query` | string | — | What you want from the page. Returns query-focused extracts (`query_extracts`/`query_snippet`) instead of only full content. |
 | `maxContentLength` | integer | `200000` | Maximum content length in characters (minimum 500) |
 
 See [content retrieval](/search/content-retrieval) for the full fetch endpoint reference.
+
+### Error handling
+
+MCP tool errors come back as a text result with `isError: true`, not a raw HTTP status — the message is written for the calling agent to act on:
+
+| Cause | What the agent sees |
+|---|---|
+| Rate limited (`429`) | Retry-after guidance in seconds |
+| Out of credits (`402`) | A message pointing to [console.andiai.com](https://console.andiai.com) to top up |
+| Temporarily unavailable / still warming (`503`) | A retry hint, with a wait time when the server provides one |
+| Fetch page-level failure (`422`) | The reason (`not_found`, `blocked`, or `unextractable`) and a note that retrying the same URL won't help |
 
 ## Agent Skill
 
@@ -182,6 +200,7 @@ The API publishes these files for automated agent and tool integration:
 | [`/.well-known/api-catalog`](https://api.andiai.com/.well-known/api-catalog) | RFC 9727 API catalog entry |
 | [`/.well-known/integrations.json`](https://api.andiai.com/.well-known/integrations.json) | Integration metadata |
 | [`/.well-known/mcp/server-card.json`](https://api.andiai.com/.well-known/mcp/server-card.json) | MCP server card (transport, docs URL) |
+| [`/.well-known/agent-card.json`](https://api.andiai.com/.well-known/agent-card.json) | A2A-style agent card: tools, transports, and auth scheme |
 | [`/.well-known/skills/andi-web-search/SKILL.md`](https://api.andiai.com/.well-known/skills/andi-web-search/SKILL.md) | Installable Agent Skill |
 | [`/.well-known/oauth-protected-resource`](https://api.andiai.com/.well-known/oauth-protected-resource) | OAuth protected resource metadata |
 
