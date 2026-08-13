@@ -130,7 +130,7 @@ Searches the web and returns LLM-ready markdown. Wraps `GET /api/v1/search` with
 | `queries` | array of strings | — | Run up to 5 related queries in one call and get fused, deduplicated results. Alternative to `q` — supply exactly one of the two. |
 | `limit` | integer | `10` | Results to return (1–50) |
 | `offset` | integer | `0` | Skip this many results — paginate deeper into an existing result set without re-searching |
-| `searchMode` | string | `auto` | Cost/speed/coverage dial: `auto`, `fast`, `low-cost`, `balanced`, `deep`, or `exhaustive`. `fast` ~1s lowest latency; `balanced` everyday web search; `deep` ~2–3s adds spell correction and more engines; `exhaustive` multi-round agentic retrieval (up to ~15s). |
+| `searchMode` | string | `auto` | Cost/speed/coverage dial: `auto`, `fast`, `low-cost`, `balanced`, `deep`, or `exhaustive`. `fast` ~1s lowest latency; `balanced` everyday web search; `deep` ~2–3s adds spell correction and broader coverage; `exhaustive` multi-round agentic retrieval (up to ~15s). |
 | `content` | boolean | `false` | Include cleaned page content for each result. Increases cost and tokens. |
 | `maxContentLength` | integer | — | Maximum content characters per result when `content=true` |
 | `country` | string | — | ISO 3166-1 country code (e.g., `US`, `GB`) |
