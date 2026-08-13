@@ -152,8 +152,6 @@ News requests are billed the same way as a search request: a per-token rate on t
 | Field | Description |
 |---|---|
 | `cost_dollars` | Amount charged to your account for this request in USD, after any discounts |
-| `vendor_cost_dollars` | The underlying cost before margin. `0` when the response required no billable vendor call — for example, a cache hit |
-| `pricing_model` | Always `dynamic` for this endpoint (cost-plus-margin) |
 
 Cache hits are billed the token rate only (no vendor call runs), and are marked `cached: true` in `metrics`, alongside `cache_age_seconds` — see [metrics](/features/response-format#metrics).
 

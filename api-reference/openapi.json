@@ -61,7 +61,7 @@
           {
             "name": "searchMode",
             "in": "query",
-            "description": "Search mode dial. `auto` (default) selects a mode automatically based on the query. `fast` returns results in about 1 second. `low-cost` limits engine usage for budget-constrained requests. `deep` searches from multiple angles with spell correction in about 2–3 seconds. `exhaustive` runs multi-round retrieval for the most complete results, up to about 15 seconds. Takes precedence over `depth` when both are set. Requests that use `searchMode` are billed on outcome-based pricing (see `metrics.cost_dollars`).",
+            "description": "Search mode dial. `auto` (default) selects a mode automatically based on the query. `fast` returns results in about 1 second. `low-cost` caps the work done per request for budget-constrained callers. `deep` searches from multiple angles with spell correction in about 2–3 seconds. `exhaustive` runs multi-round retrieval for the most complete results, up to about 15 seconds. Takes precedence over `depth` when both are set. Requests that use `searchMode` are billed on outcome-based pricing (see `metrics.cost_dollars`).",
             "schema": {
               "type": "string",
               "enum": [
@@ -1571,15 +1571,7 @@
           },
           "cost_dollars": {
             "type": "number",
-            "description": "Amount charged to your account for this request in USD, after any discounts. Outcome-based pricing (actual cost plus margin) applies to searchMode and default calls; legacy explicit depth=fast|deep calls are charged the fixed per-call rate."
-          },
-          "vendor_cost_dollars": {
-            "type": "number",
-            "description": "The underlying vendor cost for this request, before margin. Present on the news endpoint; 0 when no billable vendor call was made for this response (for example, a cache hit)."
-          },
-          "pricing_model": {
-            "type": "string",
-            "description": "Which pricing model priced this request. Present on the news endpoint, where it is always `dynamic` (cost-plus-margin, since news has no flat per-call tier)."
+            "description": "Amount charged to your account for this request in USD, after any discounts. Outcome-based pricing applies to searchMode and default calls — each request is charged for the work performed and the content delivered; legacy explicit depth=fast|deep calls are charged the fixed per-call rate."
           }
         }
       },
