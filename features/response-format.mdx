@@ -346,6 +346,26 @@ zones over the past decade.
 
 A `source` line appears in the frontmatter only when the display source differs from the domain in the `<article>` tag. With `metadata=full`, each article's frontmatter adds `domain`, `publisher`, `type`, `content_type`, `lang`, `word_count`, `image`, `keywords`, and `summary` when available.
 
+### Type-specific sections
+
+The same type-specific groups the JSON response carries as [additional arrays](#type-specific-arrays) render as trailing sections after the main results, so a context-format caller sees everything a JSON caller would. Sections appear only when the group has results, in this order: `Academic results`, `News results`, `Video results`, `Social results`, `Place results`, `Profile results`. (`images` is JSON-only.)
+
+Each section is a markdown heading followed by a compact item list — title, url, and when available date, source, description, and duration for videos:
+
+```text
+## News results
+
+<news count="2">
+- title: "Heat Records Fall Across Southern Europe"
+  url: "https://example.com/heat-records"
+  date: "2026-07-12"
+  source: "example.com"
+  desc: "Temperatures exceeded seasonal norms for a third consecutive week..."
+</news>
+```
+
+Items already present in the main `<article>` results are not repeated in these sections.
+
 ### Extracts in context format
 
 `extracts` defaults to **on** for `format=context` (the opposite of JSON, where it defaults to off). To disable extracts in context format, pass `extracts=false`.
