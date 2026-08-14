@@ -21,6 +21,8 @@
                         "pages": [
                             "index",
                             "getting-started/quickstart",
+                            "getting-started/cli",
+                            "resources/ai-agents",
                             "getting-started/authentication"
                         ]
                     },
@@ -53,8 +55,7 @@
                         "group": "Resources",
                         "pages": [
                             "resources/error-handling",
-                            "resources/rate-limits",
-                            "resources/ai-agents"
+                            "resources/rate-limits"
                         ]
                     }
                 ]

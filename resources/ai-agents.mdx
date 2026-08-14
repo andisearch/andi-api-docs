@@ -14,11 +14,13 @@ keywords:
   - Agent Skill
 ---
 
+import AgentInstall from '/snippets/agent-install.mdx';
+
 The Andi AI Search API is built for AI agents. You can call the REST endpoints from agents you build (see the [quickstart](/getting-started/quickstart) and [AI agent tool example](/examples/ai-agent-tool)), or connect the MCP server to your coding tools for web search and page fetch.
 
 ## Add Andi to your agent
 
-<Snippet file="agent-install.mdx" />
+<AgentInstall />
 
 The [install guide](https://api.andiai.com/install.md) includes setup snippets for Claude Code, Cursor, Codex, and generic MCP clients.
 
@@ -118,6 +120,22 @@ The same config is shared by the Codex CLI, IDE extension, and ChatGPT desktop a
 
 Any client that supports the Streamable HTTP transport can connect: server URL `https://api.andiai.com/mcp`, with your API key in the `x-api-key` request header.
 
+### Stdio-only clients
+
+For MCP clients that only support the stdio transport, the [Andi CLI](/getting-started/cli) runs a local server exposing the same tools:
+
+```json
+{
+  "mcpServers": {
+    "andi": {
+      "command": "npx",
+      "args": ["-y", "@andiai/cli", "mcp"],
+      "env": { "ANDI_API_KEY": "YOUR_API_KEY" }
+    }
+  }
+}
+```
+
 ## MCP tools
 
 ### `andi_web_search`
@@ -213,7 +231,7 @@ This docs site runs its own [Model Context Protocol](https://modelcontextprotoco
 ### Claude Code
 
 ```bash
-claude mcp add andi-docs --transport streamable-http https://docs.andiai.com/mcp
+claude mcp add --transport http andi-docs https://docs.andiai.com/mcp
 ```
 
 ### Claude web and desktop

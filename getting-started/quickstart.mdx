@@ -10,9 +10,22 @@ keywords:
   - agent install
 ---
 
+import AgentInstall from '/snippets/agent-install.mdx';
+
 ## Agent quick-start
 
-<Snippet file="agent-install.mdx" />
+<AgentInstall />
+
+## CLI quick-start
+
+Search from your terminal without writing any code — get a key from the [API Console](https://console.andiai.com), then:
+
+```bash
+export ANDI_API_KEY=YOUR_API_KEY
+npx -y @andiai/cli search "what is RAG"
+```
+
+See the [CLI guide](/getting-started/cli) for fetch, output formats, and the local MCP server.
 
 ## Manual setup
 

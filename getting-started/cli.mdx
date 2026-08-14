@@ -1,0 +1,106 @@
+---
+title: CLI
+description: Search the web, fetch pages, and run a local MCP server from the command line with the Andi CLI.
+icon: terminal
+keywords:
+  - Andi CLI
+  - command line search
+  - "@andiai/cli"
+  - npx web search
+  - stdio MCP server
+---
+
+import AgentInstall from '/snippets/agent-install.mdx';
+
+The [Andi CLI](https://github.com/andisearch/andi-cli) (`@andiai/cli` on npm) is a thin client for the hosted API: web search, page fetch, and a local MCP server, with no local index or ranking.
+
+## Install
+
+Run it directly:
+
+```bash
+npx -y @andiai/cli search "andi search api" --json
+```
+
+Or install it globally:
+
+```bash
+npm install -g @andiai/cli
+andi search "current weather in san francisco"
+```
+
+## Authentication
+
+Get a key from the [API Console](https://console.andiai.com/signup). The CLI reads it from, in order of precedence: the `--api-key` flag, the `ANDI_API_KEY` environment variable, or `~/.andi/config.json` (`{"apiKey": "..."}`).
+
+```bash
+export ANDI_API_KEY=YOUR_API_KEY
+andi search "typescript satisfies operator"
+```
+
+`andi --help` and `andi schema` work without a key.
+
+## Search
+
+```bash
+andi search "who won the 2026 f1 championship" --mode deep --limit 5
+```
+
+Pass up to 5 queries at once — they run as a single API call with fused, deduplicated ranking:
+
+```bash
+andi search "rust async runtime" "tokio vs async-std" --limit 8
+```
+
+`--mode` accepts the same values as [`searchMode`](/search/search-modes): `auto` (default), `low-cost`, `fast`, `balanced`, `deep`, `exhaustive`. Filters mirror the [query parameters](/features/query-parameters): `--country`, `--language`, `--safe`, `--date-range`, `--include-domains`, `--exclude-domains`, `--content`.
+
+## Fetch a page
+
+```bash
+andi fetch https://example.com/pricing --query "what does the team plan cost"
+```
+
+`--query` focuses the extracts on what you want from the page. See [content retrieval](/search/content-retrieval) for the underlying endpoint.
+
+## Output
+
+`--format auto|json|markdown` controls the shape. The default writes human-readable markdown on an interactive terminal and a JSON envelope (`{"ok": true, "data": ..., "meta": {...}}`) when piped or redirected. `--json` forces JSON. Exit codes distinguish auth failures, exhausted credits, and invalid arguments — run `andi schema` for a machine-readable description of every command, flag, and exit code.
+
+## Local MCP server
+
+`andi mcp` runs a stdio MCP server exposing the same tools as the [hosted MCP server](/resources/ai-agents#andi-search-mcp-server) — for MCP clients that only support stdio transport:
+
+```json
+{
+  "mcpServers": {
+    "andi": {
+      "command": "npx",
+      "args": ["-y", "@andiai/cli", "mcp"],
+      "env": { "ANDI_API_KEY": "YOUR_API_KEY" }
+    }
+  }
+}
+```
+
+For HTTP-capable clients, prefer the hosted endpoint directly — no install needed. See [build with AI agents](/resources/ai-agents).
+
+## Agent install
+
+<AgentInstall />
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Build with AI agents" icon="robot" href="/resources/ai-agents">
+    Hosted MCP server, Agent Skill, and discovery files.
+  </Card>
+  <Card title="Search modes" icon="gauge-high" href="/search/search-modes">
+    Automatic effort by default, manual control when you want it.
+  </Card>
+  <Card title="Query parameters" icon="sliders" href="/features/query-parameters">
+    Full parameter reference.
+  </Card>
+  <Card title="CLI reference" icon="github" href="https://github.com/andisearch/andi-cli">
+    Full command and flag reference on GitHub.
+  </Card>
+</CardGroup>
