@@ -61,7 +61,7 @@
           {
             "name": "searchMode",
             "in": "query",
-            "description": "Search effort control. `auto` (default) sets the effort per query automatically — simple lookups resolve fast, complex questions get deeper treatment. The fixed modes pin an effort level: `low-cost` caps the work done per request for budget-constrained callers. `fast` returns results in about 1 second. `balanced` is everyday web search with mid-range latency. `deep` searches from multiple angles with spell correction in about 2–3 seconds. `exhaustive` runs multi-round retrieval for the most complete results, up to about 15 seconds. Requests are billed on outcome-based pricing (see `metrics.cost_dollars`).",
+            "description": "Search effort control. `auto` (default) sets the effort per query automatically — simple lookups resolve fast, complex questions get deeper treatment. The fixed modes pin an effort level: `low-cost` caps the work done per request for budget-constrained callers. `fast` returns results in about 1 second. `balanced` is everyday web search with mid-range latency. `deep` searches from multiple angles with spell correction in about 2–3 seconds. `exhaustive` runs multi-round retrieval for the most complete results, up to about 15 seconds. Deeper modes add query expansion, follow-up searches fanned out from initial results, and stronger reranking. Requests are billed on outcome-based pricing (see `metrics.cost_dollars`).",
             "schema": {
               "type": "string",
               "enum": [

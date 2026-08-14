@@ -30,6 +30,7 @@
                             "search/search-modes",
                             {
                                 "group": "Pinned modes",
+                                "icon": "thumbtack",
                                 "pages": [
                                     "search/fast-search",
                                     "search/deep-search"

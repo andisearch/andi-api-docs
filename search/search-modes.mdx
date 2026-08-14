@@ -21,7 +21,7 @@ Every query needs a different amount of work. A currency conversion resolves in 
 
 ## Automatic mode
 
-When you omit `searchMode` (or set `searchMode=auto`), Andi decides per query how much effort the search needs. Simple lookups and navigational queries resolve fast. Complex, multi-faceted, or research questions get deeper treatment — more search angles, stronger reranking, spell correction. Multi-query requests get deep coverage automatically.
+When you omit `searchMode` (or set `searchMode=auto`), Andi decides per query how much effort the search needs. Simple lookups and navigational queries resolve fast. Complex, multi-faceted, or research questions get deeper treatment — query expansion, more search angles, follow-up searches, stronger reranking, spell correction. Multi-query requests get deep coverage automatically.
 
 ```bash
 curl "https://api.andiai.com/api/v1/search?q=climate+change+effects" \
@@ -60,6 +60,10 @@ curl "https://api.andiai.com/api/v1/search?q=climate+change+effects&searchMode=d
 - Use `balanced` for general-purpose search when you want predictable mid-range latency.
 - Use `deep` when result quality matters more than speed: research questions, multi-faceted topics, queries that might contain typos.
 - Use `exhaustive` for tasks where missing a result is worse than waiting: due diligence, competitive analysis, literature review.
+
+### What higher effort buys
+
+Moving up the ladder does more than allow extra time. Deeper modes expand your query into related variations, fan out follow-up searches based on what the first pass finds, and apply stronger semantic reranking. `auto` uses the same machinery, scaled to what each query needs.
 
 ## Pricing
 
