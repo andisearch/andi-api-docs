@@ -22,8 +22,7 @@ Most integrations only need `q` and `searchMode`. The filtering and output param
 | `q` | string | **required** | Search query string. Also accepts a JSON array of up to 5 queries (e.g., `["query one", "query two"]`). |
 | `limit` | integer | `10` | Maximum results to return (1–100) |
 | `offset` | integer | `0` | Results to skip for pagination |
-| `searchMode` | string | `auto` | Controls search depth and cost: `auto`, `fast`, `low-cost`, `deep`, or `exhaustive`. See [search modes](/search/search-modes). |
-| `depth` | string | `fast` | Legacy alias: `fast` or `deep`. Use `searchMode` instead. When both are present, `searchMode` wins. Bare `depth` (without `searchMode`) uses flat-rate billing. |
+| `searchMode` | string | `auto` | `auto` (default) sets the search effort per query automatically. Fixed modes — `low-cost`, `fast`, `balanced`, `deep`, `exhaustive` — pin an effort level. See [search modes](/search/search-modes). |
 | `intent` | string | `auto` | Force search intent. `auto` detects from the query; `none` disables intent detection. See [intent values](#intent-values) below. |
 
 ### Intent values
@@ -199,7 +198,7 @@ Multi-query search accepts a JSON array of up to 5 queries and returns combined 
 
 <CardGroup cols={2}>
   <Card title="Search modes" icon="gauge-high" href="/search/search-modes">
-    How searchMode controls speed, depth, and cost.
+    Automatic effort by default, manual control when you want it.
   </Card>
   <Card title="Filtering" icon="filter" href="/features/filtering">
     Domain, date, and content filtering in depth.

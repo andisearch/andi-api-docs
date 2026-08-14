@@ -39,7 +39,7 @@ Get an API key from the [API Console](https://console.andiai.com).
 | `GET` | `/api/v1/fetch` | Fetch a web page as clean extracted content (JSON or LLM-ready markdown). See [content retrieval](/search/content-retrieval). |
 | `GET` | `/api/v1/news/:topic` | Curated, ranked news feed for one of 22 fixed topics — no query required. See [news feeds](/search/news-feeds). |
 
-The search endpoint supports five [search modes](/search/search-modes) (`auto`, `fast`, `low-cost`, `deep`, `exhaustive`), multiple output formats, and filtering by domain, date, content type, and more.
+The search endpoint sets the right search effort per query automatically (`searchMode=auto`, the default), with fixed [search modes](/search/search-modes) (`low-cost`, `fast`, `balanced`, `deep`, `exhaustive`) for manual control. It supports multiple output formats and filtering by domain, date, content type, and more.
 
 Browse the **Endpoints** section in the sidebar to try the endpoints in the interactive playground.
 
@@ -47,7 +47,7 @@ Browse the **Endpoints** section in the sidebar to try the endpoints in the inte
 
 Every JSON response includes `metrics.cost_dollars` — the amount charged to your account for that request in USD, after any discounts.
 
-**Search:** Calls using `searchMode` (or no mode parameter) are priced on outcome — the charge reflects the actual work performed, so simpler queries cost less. Legacy calls with an explicit `depth=fast` or `depth=deep` parameter are charged a fixed per-call rate: $0.007 for fast, $0.025 for deep.
+**Search:** Priced on outcome — the charge reflects the actual work each search performed, so simpler queries cost less. With the default `auto` mode, the price follows the effort Andi chose for the query; a pinned mode makes cost more uniform call to call.
 
 **Fetch:** Flat $0.001 base per request, plus $0.05 per 1M tokens of extracted content. Failed fetches (422 and 503 responses) are free.
 
@@ -60,7 +60,7 @@ Every JSON response includes `metrics.cost_dollars` — the amount charged to yo
     Make your first API call.
   </Card>
   <Card title="Search modes" icon="gauge-high" href="/search/search-modes">
-    Control speed, depth, and cost.
+    Automatic effort by default, manual control when you want it.
   </Card>
   <Card title="Query parameters" icon="sliders" href="/features/query-parameters">
     Full parameter reference.

@@ -11,6 +11,8 @@ keywords:
 
 Deep mode explores your topic from multiple angles to find results that a single quick search might miss. It keeps searching until it finds strong, relevant matches, and corrects any typos in your query. Responses take about 2–3 seconds.
 
+The default `auto` mode escalates to this treatment on its own when a query needs it — pin `searchMode=deep` when you want it on every call.
+
 <CodeGroup>
 
 ```bash curl
@@ -57,20 +59,19 @@ data.results.forEach(r => console.log(`${r.title} — ${r.source}`));
 The example query intentionally misspells "quantum" — deep mode corrects it automatically.
 </Note>
 
-You can also use the legacy `depth=deep` parameter, which has the same effect.
-
 ## What deep mode adds
 
 - **Thorough coverage** — finds results across multiple angles of your topic, covering sources a single search might miss
 - **Higher quality results** — keeps searching until it finds strong, relevant matches
 - **Spell correction** — fixes typos and misspellings in the query
 
-## When to use deep mode
+## When to pin deep mode
 
-- You need results a quick search might miss — niche topics, multi-faceted queries, or less obvious sources
-- Thoroughness matters more than speed
+- You want thorough coverage on every call, regardless of how simple a query looks
 - Queries come from user input that may contain typos
 - You want higher-quality results and can accept a 2–3 second response
+
+If only some of your queries need this treatment, `auto` applies it selectively — pinning is for when you want it guaranteed.
 
 ## Example response
 
@@ -139,10 +140,10 @@ curl "https://api.andiai.com/api/v1/search?q=quantum+computing&searchMode=deep&f
 
 <CardGroup cols={2}>
   <Card title="Fast mode" icon="bolt" href="/search/fast-search">
-    Default mode for real-time applications.
+    Pinned low latency for real-time applications.
   </Card>
   <Card title="Search modes" icon="gauge-high" href="/search/search-modes">
-    All five modes compared, including exhaustive.
+    Automatic effort by default, manual control when you want it.
   </Card>
   <Card title="Research assistant" icon="book-open" href="/examples/research-assistant">
     Multi-query search with result aggregation.

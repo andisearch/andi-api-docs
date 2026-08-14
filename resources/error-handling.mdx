@@ -38,7 +38,7 @@ All errors return both an `error` field and a `message` field:
 
 **Example messages:**
 - `Missing required parameter: q`
-- `Invalid value for depth parameter`
+- `Invalid value for 'searchMode'`
 
 **Fix:** Check your query string parameters against the [parameter reference](/features/query-parameters).
 </Accordion>
@@ -215,7 +215,7 @@ Do not retry `400`, `401`, or `402` errors — these indicate problems that won'
 | `Missing x-api-key header` | Header not sent | Add `-H "x-api-key: YOUR_KEY"` to your request |
 | `Invalid API key` | Wrong or revoked key | Check the key in the [API Console](https://console.andiai.com) |
 | `Missing required parameter: q` | No query provided | Add `?q=your+query` to the URL |
-| Slow responses | Using `depth=deep` or `metadata=full` | Switch to `depth=fast` or `metadata=basic` if speed matters |
+| Slow responses | Using `searchMode=deep` or `metadata=full` | Switch to `searchMode=fast` (or rely on the default `auto`) and `metadata=basic` if speed matters |
 | Empty `results` array | No matches for query/filters | Broaden your query or loosen filters |
 
 ## Next steps

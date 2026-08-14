@@ -10,7 +10,7 @@ keywords:
   - searchMode fast
 ---
 
-Fast mode returns results in about 1 second, making it the right choice for real-time applications and high-volume workloads.
+Fast mode returns results in about 1 second. The default `auto` mode already resolves simple queries fast — pin `searchMode=fast` when you need that latency guaranteed on every call, such as real-time applications and high-volume workloads.
 
 <CodeGroup>
 
@@ -45,14 +45,13 @@ data.results.forEach(r => console.log(`${r.title} — ${r.source}`));
 
 </CodeGroup>
 
-When you omit `searchMode`, the API defaults to `auto` — which may select fast mode for simple queries. You can also use the legacy `depth=fast` parameter. See [search modes](/search/search-modes) for the full set.
+## When to pin fast mode
 
-## When to use fast mode
-
-- Real-time search in user-facing applications
+- Real-time search in user-facing applications with a hard latency budget
 - High-volume automated queries
-- AI agents that need quick answers
 - Applications where latency matters more than exhaustive coverage
+
+For most applications, omit `searchMode` and let `auto` decide — it resolves simple queries fast on its own. See [search modes](/search/search-modes) for the full set.
 
 ## Example response
 
@@ -134,7 +133,7 @@ curl "https://api.andiai.com/api/v1/search?q=latest+AI+news&format=context" \
 | Result quality | Good | Thorough |
 
 <Tip>
-Start with fast mode. Switch to deep mode when you need results a quick search might miss, or when thoroughness matters more than speed. See [search modes](/search/search-modes) for the full set of modes.
+Start with `auto` — it picks between these per query. Pin fast mode when latency is critical; pin deep mode when thoroughness matters more than speed. See [search modes](/search/search-modes) for the full set of modes.
 </Tip>
 
 ## Next steps
@@ -144,7 +143,7 @@ Start with fast mode. Switch to deep mode when you need results a quick search m
     Multi-angle search with spell correction.
   </Card>
   <Card title="Search modes" icon="gauge-high" href="/search/search-modes">
-    All five modes compared.
+    Automatic effort by default, manual control when you want it.
   </Card>
   <Card title="Basic search example" icon="code" href="/examples/basic-search">
     Complete integration with error handling.

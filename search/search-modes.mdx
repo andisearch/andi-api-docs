@@ -1,51 +1,69 @@
 ---
 title: Search modes
-description: Control the speed, depth, and cost of each search with the searchMode parameter.
+description: Andi sets the right search effort for every query automatically — or you can pin the effort level yourself with searchMode.
 icon: gauge-high
 keywords:
   - searchMode
   - search modes
   - auto mode
+  - adaptive search
+  - effort levels
   - fast search
   - deep search
   - exhaustive search
   - outcome-based pricing
 ---
 
-The `searchMode` parameter controls how much work the API does for each query. Lighter modes return faster and cost less. Deeper modes search from more angles and spend more time finding results.
+Every query needs a different amount of work. A currency conversion resolves in a single fast pass. A literature review needs multiple rounds of retrieval. The `searchMode` parameter controls who decides how much work each search gets: Andi, or you.
 
-Every response includes `metrics.cost_dollars` — the actual amount charged for that request.
+- **`auto` (default)** — Andi reads each query and sets the compute, models, and search depth it needs. No tuning required.
+- **Fixed modes** — pin an effort level (`low-cost`, `fast`, `balanced`, `deep`, `exhaustive`) when you want the same behavior on every call.
 
-## Modes
+## Automatic mode
+
+When you omit `searchMode` (or set `searchMode=auto`), Andi decides per query how much effort the search needs. Simple lookups and navigational queries resolve fast. Complex, multi-faceted, or research questions get deeper treatment — more search angles, stronger reranking, spell correction. Multi-query requests get deep coverage automatically.
+
+```bash
+curl "https://api.andiai.com/api/v1/search?q=climate+change+effects" \
+  -H "x-api-key: YOUR_API_KEY"
+```
+
+You are charged for the work each search actually performs, not a flat per-call rate — so simple queries stay cheap even when your traffic mix includes hard ones. The billed amount is returned in every response as `metrics.cost_dollars`.
+
+Use `auto` unless you have a specific reason not to. It adapts as your query mix changes, so you never have to retune mode choices as your application grows.
+
+<Tip>
+To see which mode a request resolved to, use `format=context` — the response frontmatter includes a `search_mode` field.
+</Tip>
+
+## Setting the effort yourself
+
+When you want the same effort on every call — a hard latency budget, a cost ceiling, or research-grade coverage regardless of query — pin a mode:
 
 | Mode | Typical response | What it does |
 |---|---|---|
-| `auto` (default) | Varies | Picks a mode based on your query. Simple lookups resolve fast; complex questions get deeper treatment. |
-| `fast` | ~1s | Single-pass search. Lowest latency, lowest cost. |
 | `low-cost` | ~1–2s | Budget-constrained search. More coverage than `fast`, with a cost ceiling. |
+| `fast` | ~1s | Single-pass search. Lowest latency. |
+| `balanced` | ~1–2s | Everyday web search. Solid coverage and ranking without deep-mode latency. |
 | `deep` | ~2–3s | Searches from multiple angles. Spell correction. Higher-quality results for complex queries. |
-| `exhaustive` | Up to ~15s | Multi-round agentic retrieval. Keeps searching until it finds strong matches. Use for research-grade thoroughness. |
+| `exhaustive` | Up to ~15s | Multi-round agentic retrieval. Keeps searching until it finds strong matches. Research-grade thoroughness. |
 
 ```bash
 curl "https://api.andiai.com/api/v1/search?q=climate+change+effects&searchMode=deep" \
   -H "x-api-key: YOUR_API_KEY"
 ```
 
-When you omit `searchMode`, the API defaults to `auto` — it reads your query and picks the right mode. For most applications, `auto` is the right choice.
+### Choosing a mode
 
-## Choosing a mode
-
-Use `fast` when latency matters most: autocomplete, real-time UIs, high-volume batch jobs.
-
-Use `deep` when result quality matters more than speed: research questions, multi-faceted topics, queries that might contain typos.
-
-Use `exhaustive` for tasks where missing a result is worse than waiting: due diligence, competitive analysis, literature review.
-
-Use `low-cost` when you want broader coverage than `fast` but need to keep per-call spend down.
+- Use `fast` when latency matters most: autocomplete, real-time UIs, high-volume batch jobs.
+- Use `low-cost` when per-call spend matters most and you can trade some speed for coverage.
+- Use `balanced` for general-purpose search when you want predictable mid-range latency.
+- Use `deep` when result quality matters more than speed: research questions, multi-faceted topics, queries that might contain typos.
+- Use `exhaustive` for tasks where missing a result is worse than waiting: due diligence, competitive analysis, literature review.
 
 ## Pricing
 
-Requests using `searchMode` (or no mode parameter at all) are priced on outcome: the charge reflects the actual work the search performed. Simpler queries that resolve quickly cost less. The billed amount is returned in every response as `metrics.cost_dollars` (JSON) or `cost_dollars` in the frontmatter (`format=context`).
+Search requests are priced on outcome: the charge reflects the actual work the search performed. With `auto`, that means the price follows the effort Andi chose for each query. With a pinned mode, cost is more uniform call to call. The billed amount is returned in every response as `metrics.cost_dollars` (JSON) or `cost_dollars` in the frontmatter (`format=context`).
 
 ```json
 {
@@ -56,12 +74,6 @@ Requests using `searchMode` (or no mode parameter at all) are priced on outcome:
   }
 }
 ```
-
-### Legacy `depth` parameter
-
-The `depth` parameter (`fast` or `deep`) still works. If you pass `depth` without `searchMode`, billing uses fixed per-call rates: $0.007 for `depth=fast`, $0.025 for `depth=deep`.
-
-When both `searchMode` and `depth` are present, `searchMode` wins.
 
 ## The `reranker` parameter
 
@@ -84,21 +96,21 @@ curl "https://api.andiai.com/api/v1/search?q=effects+of+sleep+deprivation+on+cog
 
 ## Examples
 
-### Fast mode for a real-time UI
+### Auto mode (recommended)
+
+```bash
+curl "https://api.andiai.com/api/v1/search?q=CRISPR+gene+therapy+clinical+trials" \
+  -H "x-api-key: YOUR_API_KEY"
+```
+
+### Pinned fast mode for a real-time UI
 
 ```bash
 curl "https://api.andiai.com/api/v1/search?q=USD+to+EUR&searchMode=fast" \
   -H "x-api-key: YOUR_API_KEY"
 ```
 
-### Deep mode with spell correction
-
-```bash
-curl "https://api.andiai.com/api/v1/search?q=quantm+computing+applications&searchMode=deep" \
-  -H "x-api-key: YOUR_API_KEY"
-```
-
-### Exhaustive mode for research
+### Pinned exhaustive mode for research
 
 ```bash
 curl "https://api.andiai.com/api/v1/search?q=CRISPR+gene+therapy+clinical+trials+2026&searchMode=exhaustive&limit=40" \
@@ -109,7 +121,7 @@ curl "https://api.andiai.com/api/v1/search?q=CRISPR+gene+therapy+clinical+trials
 
 <CardGroup cols={2}>
   <Card title="Fast mode" icon="bolt" href="/search/fast-search">
-    When to use fast mode and what to expect.
+    When to pin fast mode and what to expect.
   </Card>
   <Card title="Deep mode" icon="microscope" href="/search/deep-search">
     Multi-angle search with spell correction.

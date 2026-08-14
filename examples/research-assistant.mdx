@@ -1,6 +1,6 @@
 ---
 title: Research assistant
-description: Build a research assistant with multi-query search, result aggregation, and deep search.
+description: Build a research assistant with multi-query search, result aggregation, and searchMode control.
 icon: book-open
 keywords:
   - multi-query search
@@ -9,7 +9,7 @@ keywords:
   - deep search example
 ---
 
-This example builds a research assistant that searches multiple related queries, deduplicates and aggregates the results, and uses deep search for thorough coverage.
+This example builds a research assistant that searches multiple related queries, deduplicates and aggregates the results. It uses the default `auto` search mode, which gives multi-query research calls deep treatment automatically — you can pin `searchMode=deep` or `exhaustive` for guaranteed research-grade coverage.
 
 ## Complete example
 
@@ -35,7 +35,7 @@ import requests
 api_key = os.environ["ANDI_API_KEY"]
 
 
-def research(queries: list[str], search_mode: str = "deep", limit: int = 10) -> dict:
+def research(queries: list[str], search_mode: str = "auto", limit: int = 10) -> dict:
     """Run multiple search queries and aggregate results."""
     all_results = []
     seen_urls = set()
@@ -96,7 +96,7 @@ for result in research_data["results"][:10]:
 ```javascript JavaScript
 const apiKey = process.env.ANDI_API_KEY;
 
-async function research(queries, searchMode = "deep", limit = 10) {
+async function research(queries, searchMode = "auto", limit = 10) {
   const allResults = [];
   const seenUrls = new Set();
   const correctedQueries = {};
@@ -166,7 +166,7 @@ data.results.slice(0, 10).forEach((r) => {
 ## How it works
 
 1. **Multiple queries** — search the same topic from different angles to get broader coverage
-2. **Deep search** — `searchMode=deep` enables spell correction and extended source coverage
+2. **Search mode** — the default `auto` mode gives multi-query research calls deep treatment automatically; pin `searchMode=deep` or `exhaustive` for guaranteed research-grade coverage and spell correction
 3. **Deduplication** — track URLs already seen to avoid duplicate results across queries
 4. **Spell correction tracking** — `correctedQuery` shows when deep search fixed a typo
 
@@ -185,7 +185,6 @@ response = requests.get(
             "quantum computing challenges",
             "quantum computing 2025",
         ]),
-        "searchMode": "deep",
         "limit": 10,
     },
     headers={"x-api-key": api_key},
@@ -205,7 +204,6 @@ Focus research on academic or authoritative sources:
 ```python
 research_data = research(
     queries=["quantum computing applications"],
-    search_mode="deep",
     limit=20,
 )
 
@@ -223,7 +221,6 @@ response = requests.get(
     "https://api.andiai.com/api/v1/search",
     params={
         "q": "quantum computing",
-        "searchMode": "deep",
         "includeDomains": "arxiv.org,nature.com,ieee.org",
     },
     headers={"x-api-key": api_key},

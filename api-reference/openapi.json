@@ -3,7 +3,7 @@
   "info": {
     "title": "Andi AI Search API",
     "version": "1.7.0",
-    "description": "Web search and page-fetch API for people and AI agents. `GET`/`POST /api/v1/search` returns structured results with query operators, domain and date filtering, and multiple output formats. `GET /api/v1/fetch` retrieves and extracts a single page. `GET /api/v1/news/:topic` returns a curated, ranked news feed for one of 22 fixed topics — no query required. Search and fetch support `format=context`, which returns markdown suited to language models; the news endpoint returns JSON only. The `searchMode` parameter (`auto` default, plus `fast`, `low-cost`, `deep`, and `exhaustive`) controls search effort and latency; requests that use `searchMode` are billed on outcome-based pricing, reported per call in `metrics.cost_dollars`. `depth` (`fast`/`deep`) is a legacy alias kept for backward compatibility."
+    "description": "Web search and page-fetch API for people and AI agents. `GET`/`POST /api/v1/search` returns structured results with query operators, domain and date filtering, and multiple output formats. `GET /api/v1/fetch` retrieves and extracts a single page. `GET /api/v1/news/:topic` returns a curated, ranked news feed for one of 22 fixed topics — no query required. Search and fetch support `format=context`, which returns markdown suited to language models; the news endpoint returns JSON only. By default (`searchMode=auto`) the API sets the search effort per query — compute, models, and depth — automatically; the fixed modes (`low-cost`, `fast`, `balanced`, `deep`, `exhaustive`) pin an effort level when you want the same behavior on every call. Requests are billed on outcome-based pricing, reported per call in `metrics.cost_dollars`."
   },
   "servers": [
     {
@@ -25,7 +25,7 @@
       "get": {
         "operationId": "search",
         "summary": "Search the web",
-        "description": "Performs a web search and returns structured results. Supports the `searchMode` dial (auto, fast, low-cost, deep, exhaustive), domain and date filtering, query operators, and multiple output formats.",
+        "description": "Performs a web search and returns structured results. Search effort is set automatically per query by default (`searchMode=auto`), with fixed modes (low-cost, fast, balanced, deep, exhaustive) available for manual control. Supports domain and date filtering, query operators, and multiple output formats.",
         "parameters": [
           {
             "name": "q",
@@ -61,30 +61,18 @@
           {
             "name": "searchMode",
             "in": "query",
-            "description": "Search mode dial. `auto` (default) selects a mode automatically based on the query. `fast` returns results in about 1 second. `low-cost` caps the work done per request for budget-constrained callers. `deep` searches from multiple angles with spell correction in about 2–3 seconds. `exhaustive` runs multi-round retrieval for the most complete results, up to about 15 seconds. Takes precedence over `depth` when both are set. Requests that use `searchMode` are billed on outcome-based pricing (see `metrics.cost_dollars`).",
+            "description": "Search effort control. `auto` (default) sets the effort per query automatically — simple lookups resolve fast, complex questions get deeper treatment. The fixed modes pin an effort level: `low-cost` caps the work done per request for budget-constrained callers. `fast` returns results in about 1 second. `balanced` is everyday web search with mid-range latency. `deep` searches from multiple angles with spell correction in about 2–3 seconds. `exhaustive` runs multi-round retrieval for the most complete results, up to about 15 seconds. Requests are billed on outcome-based pricing (see `metrics.cost_dollars`).",
             "schema": {
               "type": "string",
               "enum": [
                 "auto",
-                "fast",
                 "low-cost",
+                "fast",
+                "balanced",
                 "deep",
                 "exhaustive"
               ],
               "default": "auto"
-            }
-          },
-          {
-            "name": "depth",
-            "in": "query",
-            "description": "Legacy search depth parameter, kept for backward compatibility. `fast` returns results in ~1 second. `deep` searches from multiple angles for higher-quality results, with spell correction, in ~2–3 seconds. `searchMode` is the current parameter and takes precedence when both are set. A bare `depth` value with no `searchMode` is billed at a fixed legacy rate instead of outcome-based pricing.",
-            "schema": {
-              "type": "string",
-              "enum": [
-                "fast",
-                "deep"
-              ],
-              "default": "fast"
             }
           },
           {
@@ -523,21 +511,13 @@
                     "type": "string",
                     "enum": [
                       "auto",
-                      "fast",
                       "low-cost",
+                      "fast",
+                      "balanced",
                       "deep",
                       "exhaustive"
                     ],
                     "default": "auto"
-                  },
-                  "depth": {
-                    "type": "string",
-                    "enum": [
-                      "fast",
-                      "deep"
-                    ],
-                    "default": "fast",
-                    "description": "Legacy alias for `searchMode`; kept for backward compatibility."
                   },
                   "reranker": {
                     "type": "string",
@@ -1571,7 +1551,7 @@
           },
           "cost_dollars": {
             "type": "number",
-            "description": "Amount charged to your account for this request in USD, after any discounts. Outcome-based pricing applies to searchMode and default calls — each request is charged for the work performed and the content delivered; legacy explicit depth=fast|deep calls are charged the fixed per-call rate."
+            "description": "Amount charged to your account for this request in USD, after any discounts. Pricing is outcome-based — each request is charged for the work performed and the content delivered, whether the effort was set automatically (`auto`) or pinned with a fixed mode."
           }
         }
       },

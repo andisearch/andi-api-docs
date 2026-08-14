@@ -55,8 +55,8 @@ search_tool = {
                 },
                 "searchMode": {
                     "type": "string",
-                    "enum": ["auto", "fast", "low-cost", "deep", "exhaustive"],
-                    "description": "Search mode. auto (default) picks per query; fast for speed, deep for thoroughness",
+                    "enum": ["auto", "low-cost", "fast", "balanced", "deep", "exhaustive"],
+                    "description": "Search mode. auto (default) sets the right effort per query; pin a mode (low-cost, fast, balanced, deep, exhaustive) to control it",
                 },
             },
             "required": ["query"],
@@ -85,8 +85,8 @@ const searchTool = {
         },
         searchMode: {
           type: "string",
-          enum: ["auto", "fast", "low-cost", "deep", "exhaustive"],
-          description: "Search mode. auto (default) picks per query; fast for speed, deep for thoroughness",
+          enum: ["auto", "low-cost", "fast", "balanced", "deep", "exhaustive"],
+          description: "Search mode. auto (default) sets the right effort per query; pin a mode (low-cost, fast, balanced, deep, exhaustive) to control it",
         },
       },
       required: ["query"],

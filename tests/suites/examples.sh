@@ -38,8 +38,8 @@ run_examples_tests() {
   assert_each_has_field ".results" "link" "RAG results have link"
   assert_each_has_field ".results" "desc" "RAG results have desc"
 
-  # q=...&depth=deep&extracts=true&limit=10 (variation: deep search)
-  api_get "q=what+causes+aurora+borealis&depth=deep&extracts=true&limit=10"
+  # q=...&searchMode=deep&extracts=true&limit=10 (variation: deep search)
+  api_get "q=what+causes+aurora+borealis&searchMode=deep&extracts=true&limit=10"
   assert_status "200" "deep RAG search returns 200"
   assert_json_length_lte ".results" "10" "deep results count <= limit"
 
@@ -89,15 +89,15 @@ run_examples_tests() {
 
   section "Examples — research assistant"
 
-  # q=...&depth=deep&limit=10&extracts=true (single deep query)
-  api_get "q=quantum+computing+applications&depth=deep&limit=10&extracts=true"
+  # q=...&searchMode=deep&limit=10&extracts=true (single deep query)
+  api_get "q=quantum+computing+applications&searchMode=deep&limit=10&extracts=true"
   assert_status "200" "deep research search returns 200"
   assert_json_type ".results" "array" "research results is array"
 
-  # Multi-query JSON array: q=["q1","q2"]&depth=deep&limit=10
+  # Multi-query JSON array: q=["q1","q2"]&searchMode=deep&limit=10
   api_get_raw -G "${API_BASE}${API_ENDPOINT}" \
     --data-urlencode 'q=["quantum computing applications", "quantum computing challenges"]' \
-    -d "depth=deep" \
+    -d "searchMode=deep" \
     -d "limit=10"
   assert_status "200" "multi-query research returns 200"
   assert_json_type ".results" "array" "multi-query results is array"

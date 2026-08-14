@@ -141,9 +141,9 @@ context = response.text
 `format=context` is the fastest path to a working RAG pipeline. Use `format=json` with `extracts=true` when you need more control over how context is structured.
 </Tip>
 
-## Using deep search for RAG
+## Pinning deep mode for RAG
 
-For research-heavy queries, deep search provides broader source coverage and spell correction:
+The default `auto` mode adapts effort per query and is the right default for most RAG pipelines. For research-heavy queries, set `searchMode=deep` to force broader source coverage and spell correction on every call:
 
 ```python
 response = requests.get(
@@ -159,7 +159,7 @@ response = requests.get(
 ```
 
 <Note>
-Deep mode takes ~2-3 seconds vs ~1 second for fast mode. Use it when answer quality matters more than latency.
+Deep mode takes ~2-3 seconds vs ~1 second for fast mode. Pin it when you need guaranteed broad coverage on every call; otherwise `auto` already applies deeper treatment when a query calls for it.
 </Note>
 
 ## Tips for better RAG results

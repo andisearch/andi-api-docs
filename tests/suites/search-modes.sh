@@ -4,7 +4,7 @@
 run_search_modes_tests() {
   section "Search modes"
 
-  local modes=(auto fast low-cost deep exhaustive)
+  local modes=(auto fast low-cost balanced deep exhaustive)
   for mode in "${modes[@]}"; do
     api_get "q=test+search&searchMode=${mode}"
     assert_status "200" "searchMode=${mode} returns 200"

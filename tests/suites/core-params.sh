@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 # Test suite: Core parameters (q, limit, offset, depth)
+# `depth` is a legacy, no-longer-documented alias for `searchMode`. It is tested here
+# only for backward-compatibility with existing integrations, not as documented behavior.
 
 run_core_params_tests() {
   section "Core parameters"

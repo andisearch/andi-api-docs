@@ -154,9 +154,9 @@ response = requests.get(
 )
 ```
 
-### Deep mode for thorough results
+### Pinning deep mode
 
-Use `searchMode=deep` when you need higher-quality results and can accept a 2–3 second response:
+The default `auto` mode already escalates to deeper treatment automatically when a query needs it. Set `searchMode=deep` to guarantee that treatment on every call, accepting a 2–3 second response:
 
 ```python
 response = requests.get(
