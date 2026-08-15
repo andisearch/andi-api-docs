@@ -58,6 +58,11 @@ search_tool = {
                     "enum": ["auto", "low-cost", "fast", "balanced", "deep", "exhaustive"],
                     "description": "Search mode. auto (default) sets the right effort per query; pin a mode (low-cost, fast, balanced, deep, exhaustive) to control it",
                 },
+                "effort": {
+                    "type": "string",
+                    "enum": ["low", "medium", "high", "max"],
+                    "description": "How hard to try — low favours speed, max favours thoroughness. Omit for the adaptive default; searchMode wins if both are set",
+                },
             },
             "required": ["query"],
         },
@@ -88,6 +93,11 @@ const searchTool = {
           enum: ["auto", "low-cost", "fast", "balanced", "deep", "exhaustive"],
           description: "Search mode. auto (default) sets the right effort per query; pin a mode (low-cost, fast, balanced, deep, exhaustive) to control it",
         },
+        effort: {
+          type: "string",
+          enum: ["low", "medium", "high", "max"],
+          description: "How hard to try — low favours speed, max favours thoroughness. Omit for the adaptive default; searchMode wins if both are set",
+        },
       },
       required: ["query"],
     },
@@ -111,11 +121,14 @@ import requests
 api_key = os.environ["ANDI_API_KEY"]
 
 
-def execute_web_search(query: str, limit: int = 5, searchMode: str = "auto") -> str:
+def execute_web_search(query: str, limit: int = 5, searchMode: str = "auto", effort: str = None) -> str:
     """Execute a web search and return formatted results."""
+    params = {"q": query, "limit": limit, "searchMode": searchMode, "extracts": "true"}
+    if effort:
+        params["effort"] = effort
     response = requests.get(
         "https://api.andiai.com/api/v1/search",
-        params={"q": query, "limit": limit, "searchMode": searchMode, "extracts": "true"},
+        params=params,
         headers={"x-api-key": api_key},
     )
 
@@ -140,12 +153,15 @@ def execute_web_search(query: str, limit: int = 5, searchMode: str = "auto") -> 
 ```javascript JavaScript
 const apiKey = process.env.ANDI_API_KEY;
 
-async function executeWebSearch(query, limit = 5, searchMode = "auto") {
+async function executeWebSearch(query, limit = 5, searchMode = "auto", effort = null) {
   const url = new URL("https://api.andiai.com/api/v1/search");
   url.searchParams.set("q", query);
   url.searchParams.set("limit", String(limit));
   url.searchParams.set("searchMode", searchMode);
   url.searchParams.set("extracts", "true");
+  if (effort) {
+    url.searchParams.set("effort", effort);
+  }
 
   const response = await fetch(url, {
     headers: { "x-api-key": apiKey },
