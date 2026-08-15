@@ -198,6 +198,21 @@ npx skills add https://api.andiai.com/.well-known/skills/andi-web-search/SKILL.m
 
 The skill is also available at `https://api.andiai.com/.well-known/agent-skills/andi-web-search/SKILL.md`, with an index at [`/.well-known/agent-skills/index.json`](https://api.andiai.com/.well-known/agent-skills/index.json).
 
+### Claude Code plugin
+
+The [`andisearch/andi-agent-skills`](https://github.com/andisearch/andi-agent-skills) repository doubles as a Claude Code plugin marketplace. The `andi` plugin installs the `andi-web-search` skill and connects the hosted MCP server in one step:
+
+```text
+/plugin marketplace add andisearch/andi-agent-skills
+/plugin install andi@andi-agent-skills
+```
+
+Set `ANDI_API_KEY` in your environment before first use.
+
+### Install from the GitHub repo
+
+The same repository works with the skills CLI — `npx skills add andisearch/andi-agent-skills` — and with Codex's skill installer. See the [repo README](https://github.com/andisearch/andi-agent-skills#install) for the full install matrix, including the Codex plugin.
+
 ## Agent-native output
 
 The API supports `format=context`, which returns search results as markdown with YAML frontmatter — sized for LLM context windows and ready to use without JSON parsing. See [response format](/features/response-format) for the full contract.
