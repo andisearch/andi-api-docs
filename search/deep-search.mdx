@@ -9,7 +9,7 @@ keywords:
   - searchMode deep
 ---
 
-Deep mode explores your topic from multiple angles to find results that a single quick search might miss. It keeps searching until it finds strong, relevant matches, and corrects any typos in your query. Responses take about 2–3 seconds.
+Deep mode explores your topic from multiple angles to find results that a single quick search might miss. It applies stronger reranking so only strong, relevant matches make the cut, and corrects any typos in your query. Responses take about 2–3 seconds.
 
 The default `auto` mode escalates to this treatment on its own when a query needs it — pin `searchMode=deep` when you want it on every call. Equivalent to [`effort=high`](/search/search-modes#the-effort-parameter), if you use the generic effort dial instead of naming a mode.
 
@@ -63,7 +63,7 @@ The example query intentionally misspells "quantum" — deep mode corrects it au
 
 - **Query expansion** — expands your query into related variations and fans out follow-up searches from what the first pass finds
 - **Thorough coverage** — finds results across multiple angles of your topic, covering sources a single search might miss
-- **Higher quality results** — keeps searching until it finds strong, relevant matches
+- **Higher quality results** — stronger reranking keeps only strong, relevant matches
 - **Spell correction** — fixes typos and misspellings in the query
 
 ## When to pin deep mode
