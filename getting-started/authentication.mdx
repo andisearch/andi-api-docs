@@ -11,7 +11,7 @@ keywords:
 import AuthHeader from '/snippets/auth-header.mdx';
 import ConsoleCta from '/snippets/console-cta.mdx';
 
-Every request to the Andi AI Search API must include an API key in the `x-api-key` header.
+Every request to the Andi AI Search API must include an API key in the `x-api-key` header. The same key authenticates every access path: REST requests, the [Andi CLI](/getting-started/cli), and the [MCP server](/resources/ai-agents).
 
 <AuthHeader />
 
@@ -125,6 +125,9 @@ Treat API keys like passwords. Never commit them to version control or expose th
 <CardGroup cols={2}>
   <Card title="Search modes" icon="gauge-high" href="/search/search-modes">
     Automatic effort by default, manual control when you want it.
+  </Card>
+  <Card title="Build with AI agents" icon="robot" href="/resources/ai-agents">
+    Use your key with the MCP server and agent tools.
   </Card>
   <ConsoleCta />
   <Card title="Error handling" icon="triangle-exclamation" href="/resources/error-handling">

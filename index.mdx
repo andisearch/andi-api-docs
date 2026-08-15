@@ -42,25 +42,40 @@ https://api.andiai.com
 
 ## Authentication
 
-All requests require an API key passed in the `x-api-key` header. Get your key from the [API Console](https://console.andiai.com/signup).
+All requests require an API key passed in the `x-api-key` header. Get your key from the [API Console](https://console.andiai.com/signup). The same key works across the REST API, the CLI, and the MCP server.
+
+## Core endpoints
+
+`/api/v1/search` searches the web. [`/api/v1/fetch`](/search/content-retrieval) reads a page as clean extracted content:
 
 ```bash
 curl "https://api.andiai.com/api/v1/search?q=hello+world" \
   -H "x-api-key: YOUR_API_KEY"
 ```
 
-The same key covers both core endpoints: `/api/v1/search` for web search and [`/api/v1/fetch`](/search/content-retrieval) for reading a page as clean extracted content:
-
 ```bash
 curl "https://api.andiai.com/api/v1/fetch?url=https://example.com/article" \
   -H "x-api-key: YOUR_API_KEY"
 ```
 
-Prefer a command line? The [Andi CLI](/getting-started/cli) wraps search, fetch, and a local MCP server:
+## CLI
+
+The [Andi CLI](/getting-started/cli) wraps search, fetch, and a local MCP server — search from your terminal without writing any code. It reads your key from the `ANDI_API_KEY` environment variable:
 
 ```bash
+export ANDI_API_KEY=YOUR_API_KEY
 npx -y @andiai/cli search "hello world"
 ```
+
+## MCP server
+
+AI agents connect to the hosted [MCP server](/resources/ai-agents) to use Andi web search and page fetch as tools, authenticated with the same `x-api-key` header:
+
+```text
+https://api.andiai.com/mcp
+```
+
+See [build with AI agents](/resources/ai-agents) for setup in Claude Code, Cursor, VS Code, Codex, and other MCP clients.
 
 ## What you can build
 
