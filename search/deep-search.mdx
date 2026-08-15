@@ -107,7 +107,7 @@ If only some of your queries need this treatment, `auto` applies it selectively 
 
 ### Handling corrected queries
 
-The `correctedQuery` field appears only when deep mode detects and fixes a misspelling. Use it to show users what was actually searched:
+The `correctedQuery` field appears when the search detects and fixes a misspelling. Use it to show users what was actually searched:
 
 ```python
 data = response.json()
@@ -116,7 +116,7 @@ if data.get("correctedQuery"):
 ```
 
 <Note>
-`correctedQuery` is only present on deep mode responses where a correction was made. Fast mode does not perform spell correction.
+Any mode can return `correctedQuery` when a correction is detected. Deep and exhaustive modes go further: they re-run the search with the corrected query, so the results themselves reflect the correction.
 </Note>
 
 <Accordion title="Adding extracts and metadata">

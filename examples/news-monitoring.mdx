@@ -18,7 +18,7 @@ This example builds a news monitoring system that searches for recent articles o
 ```bash curl
 # Search for AI news from the past 24 hours
 curl -s "https://api.andiai.com/api/v1/search?q=artificial+intelligence&intent=news&dateRange=24h&limit=10" \
-  -H "x-api-key: $ANDI_API_KEY" | jq '.results[] | {title, link, date, source}'
+  -H "x-api-key: $ANDI_API_KEY" | jq '(.news // .results)[] | {title, link, date, source}'
 ```
 
 ```python Python
@@ -180,8 +180,8 @@ response = requests.get(
     params={
         "q": "product launch",
         "intent": "news",
-        "dateFrom": "2025-03-01",
-        "dateTo": "2025-03-15",
+        "dateFrom": "2026-03-01",
+        "dateTo": "2026-03-15",
     },
     headers={"x-api-key": api_key},
 )

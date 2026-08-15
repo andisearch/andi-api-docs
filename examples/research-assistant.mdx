@@ -18,8 +18,7 @@ This example builds a research assistant that searches multiple related queries,
 ```bash curl
 # Multi-query search with a JSON array
 curl -G -s "https://api.andiai.com/api/v1/search" \
-  --data-urlencode 'q=["quantum computing applications", "quantum computing challenges", "quantum computing 2025"]' \
-  -d "searchMode=deep" \
+  --data-urlencode 'q=["quantum computing applications", "quantum computing challenges", "quantum computing outlook"]' \
   -d "limit=10" \
   -H "x-api-key: $ANDI_API_KEY" | jq '{
     correctedQuery,
@@ -77,7 +76,7 @@ def research(queries: list[str], search_mode: str = "auto", limit: int = 10) -> 
 queries = [
     "quantum computing applications",
     "quantum computing challenges limitations",
-    "quantum computing breakthroughs 2025",
+    "recent quantum computing breakthroughs",
 ]
 
 research_data = research(queries)
@@ -140,7 +139,7 @@ async function research(queries, searchMode = "auto", limit = 10) {
 const queries = [
   "quantum computing applications",
   "quantum computing challenges limitations",
-  "quantum computing breakthroughs 2025",
+  "recent quantum computing breakthroughs",
 ];
 
 const data = await research(queries);
@@ -183,7 +182,7 @@ response = requests.get(
         "q": json.dumps([
             "quantum computing applications",
             "quantum computing challenges",
-            "quantum computing 2025",
+            "quantum computing outlook",
         ]),
         "limit": 10,
     },

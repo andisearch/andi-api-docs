@@ -172,7 +172,7 @@ async function executeWebSearch(query, limit = 5, searchMode = "auto") {
 
 ## Search then fetch workflow
 
-An agent can search for results, then fetch full content from the most relevant page:
+An agent can search for results, then fetch full content from the most relevant page. This example pins `searchMode=deep` so every call gets broad coverage before the fetch — omit it to let `auto` decide per query:
 
 ```python
 def search_and_fetch(query: str) -> str:
@@ -227,11 +227,11 @@ message = response.choices[0].message
 
 # Step 2: Execute tool calls
 if message.tool_calls:
+    messages.append(message)
     for tool_call in message.tool_calls:
         args = json.loads(tool_call.function.arguments)
         result = execute_web_search(**args)
 
-        messages.append(message)
         messages.append({
             "role": "tool",
             "tool_call_id": tool_call.id,
@@ -275,7 +275,7 @@ def execute_web_search_context(query: str) -> str:
     Full fetch endpoint reference.
   </Card>
   <Card title="Search modes" icon="gauge-high" href="/search/search-modes">
-    Choose the right mode for your agent's needs.
+    Automatic effort by default, manual control when you want it.
   </Card>
   <Card title="Error handling" icon="triangle-exclamation" href="/resources/error-handling">
     Error codes and retry strategies.

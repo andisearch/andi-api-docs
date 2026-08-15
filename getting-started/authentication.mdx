@@ -8,9 +8,12 @@ keywords:
   - API key management
 ---
 
+import AuthHeader from '/snippets/auth-header.mdx';
+import ConsoleCta from '/snippets/console-cta.mdx';
+
 Every request to the Andi AI Search API must include an API key in the `x-api-key` header.
 
-<Snippet file="auth-header.mdx" />
+<AuthHeader />
 
 ## Getting an API key
 
@@ -120,9 +123,10 @@ Treat API keys like passwords. Never commit them to version control or expose th
 ## Next steps
 
 <CardGroup cols={2}>
-  <Card title="Fast search" icon="bolt" href="/search/fast-search">
-    Make your first search request.
+  <Card title="Search modes" icon="gauge-high" href="/search/search-modes">
+    Automatic effort by default, manual control when you want it.
   </Card>
+  <ConsoleCta />
   <Card title="Error handling" icon="triangle-exclamation" href="/resources/error-handling">
     Handle authentication errors and other failures.
   </Card>

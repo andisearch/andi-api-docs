@@ -93,6 +93,17 @@ curl "https://api.andiai.com/api/v1/fetch?url=https://example.com/article&query=
 
 The response includes `query_extracts` (passages relevant to the query), `query_snippet` (a query-focused summary), and `query_hash`.
 
+## Partial responses
+
+A `200` response can include partial content when the page is slow to fully retrieve:
+
+| Field | Type | Description |
+|---|---|---|
+| `partial` | boolean | `true` when the returned content is a best-effort excerpt, not the full page |
+| `retry_after_seconds` | integer | Seconds to wait before re-requesting the full document |
+
+Treat `partial: true` as incomplete — re-request the same URL after `retry_after_seconds` to get the full content. This differs from a `503`, where no content was extracted at all.
+
 ## Error handling
 
 The fetch endpoint uses two distinct error codes for page-level failures:

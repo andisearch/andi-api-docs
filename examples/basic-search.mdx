@@ -43,7 +43,7 @@ ANDI_API_KEY=your-api-key
 
 # Search with error handling
 response=$(curl -s -w "\n%{http_code}" \
-  "https://api.andiai.com/api/v1/search?q=best+programming+languages+2025&limit=5" \
+  "https://api.andiai.com/api/v1/search?q=best+programming+languages&limit=5" \
   -H "x-api-key: $ANDI_API_KEY")
 
 http_code=$(echo "$response" | tail -1)
@@ -64,7 +64,7 @@ api_key = os.environ["ANDI_API_KEY"]
 
 response = requests.get(
     "https://api.andiai.com/api/v1/search",
-    params={"q": "best programming languages 2025", "limit": 5},
+    params={"q": "best programming languages", "limit": 5},
     headers={"x-api-key": api_key},
 )
 
@@ -87,7 +87,7 @@ else:
 const apiKey = process.env.ANDI_API_KEY;
 
 const url = new URL("https://api.andiai.com/api/v1/search");
-url.searchParams.set("q", "best programming languages 2025");
+url.searchParams.set("q", "best programming languages");
 url.searchParams.set("limit", "5");
 
 const response = await fetch(url, {
@@ -129,7 +129,7 @@ Add `extracts=true` to get longer text passages from each result page:
 ```python
 response = requests.get(
     "https://api.andiai.com/api/v1/search",
-    params={"q": "best programming languages 2025", "extracts": "true"},
+    params={"q": "best programming languages", "extracts": "true"},
     headers={"x-api-key": api_key},
 )
 
@@ -147,7 +147,7 @@ Restrict results to specific sites:
 response = requests.get(
     "https://api.andiai.com/api/v1/search",
     params={
-        "q": "best programming languages 2025",
+        "q": "best programming languages",
         "includeDomains": "stackoverflow.com,github.com",
     },
     headers={"x-api-key": api_key},
@@ -162,7 +162,7 @@ The default `auto` mode already escalates to deeper treatment automatically when
 response = requests.get(
     "https://api.andiai.com/api/v1/search",
     params={
-        "q": "best programming languages 2025",
+        "q": "best programming languages",
         "searchMode": "deep",
     },
     headers={"x-api-key": api_key},
@@ -176,7 +176,7 @@ Get results as markdown text, ready to pass into an LLM prompt:
 ```python
 response = requests.get(
     "https://api.andiai.com/api/v1/search",
-    params={"q": "best programming languages 2025", "format": "context"},
+    params={"q": "best programming languages", "format": "context"},
     headers={"x-api-key": api_key},
 )
 

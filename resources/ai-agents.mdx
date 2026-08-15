@@ -162,7 +162,7 @@ Searches the web and returns LLM-ready markdown. Wraps `GET /api/v1/search` with
 The MCP tool caps `limit` at 50. The REST endpoint allows up to 100.
 </Note>
 
-Results always carry the `metadata=full` fields — `content_type`, `word_count`, `lang`, `publisher`, `summary` — in each result's frontmatter (see [response format](/features/response-format#per-result-structure)), plus a per-call `cost_dollars`. Results default to extracts; set `content=true` or follow up with `andi_fetch_url` only when extracts aren't enough.
+Results carry the `metadata=full` fields — `content_type`, `word_count`, `lang`, `publisher`, `summary` — in each result's frontmatter when available (see [response format](/features/response-format#per-result-structure)), plus a per-call `cost_dollars`. Results default to extracts; set `content=true` or follow up with `andi_fetch_url` only when extracts aren't enough.
 
 ### `andi_fetch_url`
 

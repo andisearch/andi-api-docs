@@ -28,7 +28,7 @@ The `results_type` field tells you the shape of the response. Use it to determin
 | `results` | array | Yes | Search results |
 | `metrics` | object | Yes | Search performance and cost metrics |
 | `safeSearch` | object | No | Echo of safe-search state: `{requested, applied}`. Present on cache misses. Use this to confirm your `safe` parameter was honored. |
-| `correctedQuery` | string | No | Spell-corrected query (deep mode only, when a correction is made) |
+| `correctedQuery` | string | No | Spell-corrected query, when a correction was detected. Deep and exhaustive modes also re-run the search with the corrected query. |
 | `related_searches` | array | No | Related search suggestions |
 | `topics` | array | No | Related topics |
 
@@ -276,7 +276,7 @@ The response always includes a `metrics` object with performance and billing dat
 | `results_returned` | integer | Results returned in this response |
 | `total_results_found` | integer | Total results found across sources |
 | `cached` | boolean | Whether this response was served from cache. Only present on cache hits. |
-| `cache_age_seconds` | number | How old the cached response is, in seconds. Only present on cache hits. |
+| `cache_age_seconds` | integer | How old the cached response is, in seconds. Only present on cache hits. |
 
 ## Context format
 

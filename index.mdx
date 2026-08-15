@@ -42,10 +42,17 @@ https://api.andiai.com
 
 ## Authentication
 
-All requests require an API key passed in the `x-api-key` header. Get your key from the [API Console](https://console.andiai.com).
+All requests require an API key passed in the `x-api-key` header. Get your key from the [API Console](https://console.andiai.com/signup).
 
 ```bash
 curl "https://api.andiai.com/api/v1/search?q=hello+world" \
+  -H "x-api-key: YOUR_API_KEY"
+```
+
+The same key covers both core endpoints: `/api/v1/search` for web search and [`/api/v1/fetch`](/search/content-retrieval) for reading a page as clean extracted content:
+
+```bash
+curl "https://api.andiai.com/api/v1/fetch?url=https://example.com/article" \
   -H "x-api-key: YOUR_API_KEY"
 ```
 

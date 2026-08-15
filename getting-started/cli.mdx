@@ -52,7 +52,7 @@ Pass up to 5 queries at once — they run as a single API call with fused, dedup
 andi search "rust async runtime" "tokio vs async-std" --limit 8
 ```
 
-`--mode` accepts the same values as [`searchMode`](/search/search-modes): `auto` (default), `low-cost`, `fast`, `balanced`, `deep`, `exhaustive`. Filters mirror the [query parameters](/features/query-parameters): `--country`, `--language`, `--safe`, `--date-range`, `--include-domains`, `--exclude-domains`, `--content`.
+`--mode` accepts the same values as [`searchMode`](/search/search-modes): `auto` (default), `low-cost`, `fast`, `balanced`, `deep`, `exhaustive`. Filters mirror the [query parameters](/features/query-parameters): `--country`, `--language`, `--safe`, `--date-range`, `--include-domains`, `--exclude-domains`. Add `--content` to return full page content for each result instead of extracts.
 
 ## Fetch a page
 
