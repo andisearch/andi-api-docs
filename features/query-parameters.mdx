@@ -23,6 +23,7 @@ Most integrations only need `q` and `searchMode`. The filtering and output param
 | `limit` | integer | `10` | Maximum results to return (1–100) |
 | `offset` | integer | `0` | Results to skip for pagination |
 | `searchMode` | string | `auto` | `auto` (default) sets the search effort per query automatically. Fixed modes — `low-cost`, `fast`, `balanced`, `deep`, `exhaustive` — pin an effort level. See [search modes](/search/search-modes). |
+| `effort` | string | — | Pins an effort level by generic tier name instead of a mode: `low`, `medium`, `high`, `max` (map to `fast`, `balanced`, `deep`, `exhaustive`). An explicit `searchMode` wins over `effort`. Omit for the adaptive default. See [the effort parameter](/search/search-modes#the-effort-parameter). |
 | `intent` | string | `auto` | Force search intent. `auto` detects from the query; `none` disables intent detection. See [intent values](#intent-values) below. |
 
 ### Intent values

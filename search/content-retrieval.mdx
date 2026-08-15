@@ -23,6 +23,7 @@ curl "https://api.andiai.com/api/v1/fetch?url=https://example.com/article" \
 |---|---|---|---|
 | `url` | string | **required** | Absolute URL to fetch (http or https) |
 | `format` | string | `json` | `json` or `context` (markdown with YAML frontmatter) |
+| `effort` | string | — | How thoroughly to retrieve the page: `low`, `medium`, `high`, `max`. Omit for the adaptive default. See [using the effort parameter](#using-the-effort-parameter). |
 | `maxContentLength` | integer | 200000 | Maximum content length in characters. You can lower this, not raise it. |
 | `query` | string | — | When set, the response includes `query_extracts` and `query_snippet` scoped to this query. |
 
@@ -92,6 +93,21 @@ curl "https://api.andiai.com/api/v1/fetch?url=https://example.com/article&query=
 ```
 
 The response includes `query_extracts` (passages relevant to the query), `query_snippet` (a query-focused summary), and `query_hash`.
+
+## Using the `effort` parameter
+
+Pass `effort` to control how thoroughly the page is retrieved — the same tier names used by [search modes](/search/search-modes#the-effort-parameter):
+
+```bash
+curl "https://api.andiai.com/api/v1/fetch?url=https://example.com/article&effort=high" \
+  -H "x-api-key: YOUR_API_KEY"
+```
+
+`low` favors speed; `max` spends the most time extracting content, useful for pages that are slow to load or render content client-side. Omit `effort` to use the server's adaptive default. Invalid values return a `400` listing the valid tiers.
+
+<Note>
+Fetch failures (`422`, `503`) are never billed, regardless of `effort`.
+</Note>
 
 ## Partial responses
 

@@ -39,7 +39,7 @@ Get an API key from the [API Console](https://console.andiai.com).
 | `GET` | `/api/v1/fetch` | Fetch a web page as clean extracted content (JSON or LLM-ready markdown). See [content retrieval](/search/content-retrieval). |
 | `GET` | `/api/v1/news/:topic` | Curated, ranked news feed for one of 22 fixed topics — no query required. See [news feeds](/search/news-feeds). |
 
-The search endpoint sets the right search effort per query automatically (`searchMode=auto`, the default), with fixed [search modes](/search/search-modes) (`low-cost`, `fast`, `balanced`, `deep`, `exhaustive`) for manual control. It supports multiple output formats and filtering by domain, date, content type, and more.
+The search endpoint sets the right search effort per query automatically (`searchMode=auto`, the default), with fixed [search modes](/search/search-modes) (`low-cost`, `fast`, `balanced`, `deep`, `exhaustive`) for manual control, or an `effort` parameter (`low`, `medium`, `high`, `max`) that pins the same tiers by generic name. It supports multiple output formats and filtering by domain, date, content type, and more.
 
 Browse the **Endpoints** section in the sidebar to try the endpoints in the interactive playground.
 

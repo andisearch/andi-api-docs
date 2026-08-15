@@ -8,6 +8,7 @@ keywords:
   - auto mode
   - adaptive search
   - effort levels
+  - effort parameter
   - fast search
   - deep search
   - exhaustive search
@@ -64,6 +65,39 @@ curl "https://api.andiai.com/api/v1/search?q=climate+change+effects&searchMode=d
 ### What higher effort buys
 
 Moving up the ladder does more than allow extra time. Deeper modes expand your query into related variations, fan out follow-up searches based on what the first pass finds, and apply stronger semantic reranking. `auto` uses the same machinery, scaled to what each query needs.
+
+## The `effort` parameter
+
+`effort` pins the same ladder as `searchMode`, using generic tier names instead of Andi's mode names — a second way in for agents that already speak a generic effort convention.
+
+| Tier | Equivalent mode |
+|---|---|
+| `low` | `fast` |
+| `medium` | `balanced` |
+| `high` | `deep` |
+| `max` | `exhaustive` |
+
+```bash
+curl "https://api.andiai.com/api/v1/search?q=climate+change+effects&effort=high" \
+  -H "x-api-key: YOUR_API_KEY"
+```
+
+An explicit `searchMode` always wins over `effort` — if you send both, the named mode applies. Left at the default `auto`, an explicit `effort` pins its equivalent mode, same as naming that mode directly. Inside `low-cost`, `effort` shapes thoroughness within that lane's own pricing and limits rather than leaving the lane.
+
+Invalid values return a `400` listing the valid tiers: `low`, `medium`, `high`, `max`.
+
+The resolved tier is echoed back in `metrics.effort` (JSON) and `effort` in the frontmatter (`format=context`):
+
+```yaml
+---
+search_mode: "deep"
+effort: "high"
+---
+```
+
+<Tip>
+`effort` also works on [`/api/v1/fetch`](/search/content-retrieval#using-the-effort-parameter), shaping how thoroughly a page is retrieved.
+</Tip>
 
 ## Pricing
 

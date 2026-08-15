@@ -149,6 +149,7 @@ Searches the web and returns LLM-ready markdown. Wraps `GET /api/v1/search` with
 | `limit` | integer | `10` | Results to return (1–50) |
 | `offset` | integer | `0` | Skip this many results — paginate deeper into an existing result set without re-searching |
 | `searchMode` | string | `auto` | `auto` (default) sets the search effort per query automatically. Fixed modes — `low-cost`, `fast`, `balanced`, `deep`, `exhaustive` — pin an effort level: `fast` ~1s lowest latency; `balanced` ~1–2s everyday web search; `deep` ~2–3s adds spell correction and broader coverage; `exhaustive` multi-round agentic retrieval (up to ~15s). |
+| `effort` | string | — | Pins an effort level by generic tier name instead of a mode: `low`, `medium`, `high`, `max`. An explicit `searchMode` wins over `effort`. Omit for adaptive. |
 | `content` | boolean | `false` | Include cleaned page content for each result. Increases cost and tokens. |
 | `maxContentLength` | integer | — | Maximum content characters per result when `content=true` |
 | `country` | string | — | ISO 3166-1 country code (e.g., `US`, `GB`) |

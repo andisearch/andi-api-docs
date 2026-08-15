@@ -76,6 +76,20 @@
             }
           },
           {
+            "name": "effort",
+            "in": "query",
+            "description": "Thoroughness dial, independent of `searchMode`: `low` favors speed, `medium` is balanced, `high` searches from multiple angles with spell correction, `max` runs multi-round retrieval for the most complete results — the same tiers as pinning `searchMode` to `fast`, `balanced`, `deep`, and `exhaustive` respectively. An explicit `searchMode` always wins over `effort`. With the default `auto` mode, an explicit `effort` pins its equivalent mode. Omit for the adaptive default. Invalid values return a `400` listing the valid tiers.",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "low",
+                "medium",
+                "high",
+                "max"
+              ]
+            }
+          },
+          {
             "name": "reranker",
             "in": "query",
             "description": "Semantic reranker size hint. Larger tiers apply more thorough relevance scoring but need a deeper `searchMode` and may be clamped by the request's time and cost budget (for example, `xl` needs `deep` or `exhaustive`). `auto` (default) selects a tier automatically based on the query and search mode.",
@@ -522,6 +536,16 @@
                     "default": "auto",
                     "description": "Search effort control. `auto` (default) sets the effort per query automatically — simple lookups resolve fast, complex questions get deeper treatment. The fixed modes pin an effort level: `low-cost` caps the work done per request for budget-constrained callers. `fast` returns results in about 1 second. `balanced` is everyday web search with mid-range latency. `deep` searches from multiple angles with spell correction in about 2–3 seconds. `exhaustive` runs multi-round retrieval for the most complete results, up to about 15 seconds. Deeper modes add query expansion, follow-up searches fanned out from initial results, and stronger reranking. Requests are billed on outcome-based pricing (see `metrics.cost_dollars`)."
                   },
+                  "effort": {
+                    "type": "string",
+                    "enum": [
+                      "low",
+                      "medium",
+                      "high",
+                      "max"
+                    ],
+                    "description": "Thoroughness dial, independent of `searchMode`: `low` favors speed, `medium` is balanced, `high` searches from multiple angles with spell correction, `max` runs multi-round retrieval for the most complete results — the same tiers as pinning `searchMode` to `fast`, `balanced`, `deep`, and `exhaustive` respectively. An explicit `searchMode` always wins over `effort`. With the default `auto` mode, an explicit `effort` pins its equivalent mode. Omit for the adaptive default. Invalid values return a `400` listing the valid tiers."
+                  },
                   "reranker": {
                     "type": "string",
                     "enum": [
@@ -829,6 +853,21 @@
                 "context"
               ],
               "default": "json"
+            }
+          },
+          {
+            "name": "effort",
+            "in": "query",
+            "required": false,
+            "description": "How thoroughly to retrieve the page: `low` favors speed, `max` spends the most time extracting content — useful for pages that are slow to load or render content client-side. Omit for the server's adaptive default. Invalid values return a `400` listing the valid tiers. Fetch failures (`422`, `503`) are never billed, regardless of `effort`.",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "low",
+                "medium",
+                "high",
+                "max"
+              ]
             }
           },
           {

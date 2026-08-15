@@ -271,6 +271,7 @@ The response always includes a `metrics` object with performance and billing dat
 | `timestamp` | string | Timestamp of the request |
 | `duration` | number | Total request time in milliseconds |
 | `cost_dollars` | number | Amount charged for this request in USD |
+| `effort` | string | Resolved effort tier (`low`/`medium`/`high`/`max`). Present when `effort` was set, or when `searchMode` pins a fixed mode. |
 | `queries_executed` | integer | Number of queries executed |
 | `api_requests_count` | integer | Number of API requests made |
 | `results_returned` | integer | Results returned in this response |
@@ -316,6 +317,7 @@ response_time_ms: 1240
 | `related_searches` | When available | Related search suggestions |
 | `topics` | When available | Related topics |
 | `search_mode` | When available | The mode this request ran with. With the default `auto`, this shows the mode Andi selected for the query. |
+| `effort` | When available | Resolved effort tier (`low`/`medium`/`high`/`max`), when `effort` was set or `search_mode` pins a fixed mode. |
 | `cost_dollars` | When available | Amount charged in USD |
 | `cached` | When available | Whether response was from cache |
 | `cache_age_seconds` | When available | Cache age in seconds |
