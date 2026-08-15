@@ -21,14 +21,14 @@ This is a fast path for "give me the latest on X" requests — one call in place
 
 ## Topics
 
-`topic` is a path segment: `GET /api/v1/news/:topic`. 22 topics are available.
+`topic` is a path segment: `GET /api/v1/news/:topic`. 23 topics are available.
 
 | Category | Topics |
 |---|---|
 | News | `technology`, `business`, `finance`, `politics`, `sports`, `health`, `science`, `world`, `entertainment`, `us` |
 | Regions | `europe`, `uk`, `asia`, `middle-east`, `africa`, `latin-america`, `australia` |
 | Extended | `programming`, `startups` |
-| Curated groups | `hn-frontpage`, `ai-news`, `tech-news` |
+| Curated groups | `top`, `hn-frontpage`, `ai-news`, `tech-news` |
 
 An unknown topic returns `404` with the full list of valid slugs — see [unknown topics](#unknown-topics) below.
 
@@ -129,7 +129,7 @@ Requesting a topic that doesn't exist returns `404` with every valid slug, so a 
     "technology", "business", "finance", "politics", "sports", "health",
     "science", "world", "entertainment", "us", "europe", "uk", "asia",
     "middle-east", "africa", "latin-america", "australia", "programming",
-    "startups", "hn-frontpage", "ai-news", "tech-news"
+    "startups", "top", "hn-frontpage", "ai-news", "tech-news"
   ]
 }
 ```

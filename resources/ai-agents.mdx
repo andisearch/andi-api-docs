@@ -173,7 +173,7 @@ Fetches a web page and returns its content as LLM-ready markdown. Wraps `GET /ap
 |---|---|---|---|
 | `url` | string | **required** | URL to fetch |
 | `query` | string | — | What you want from the page. Returns query-focused extracts (`query_extracts`/`query_snippet`) instead of only full content. |
-| `maxContentLength` | integer | `200000` | Maximum content length in characters (minimum 500) |
+| `maxContentLength` | integer | `100000` | Maximum content length in characters (minimum 500, maximum 200000) |
 
 See [content retrieval](/search/content-retrieval) for the full fetch endpoint reference.
 
