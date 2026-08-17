@@ -31,6 +31,8 @@ All errors return both an `error` field and a `message` field:
 | `429` | `Too Many Requests` | Rate limit exceeded. |
 | `500` | `Internal server error` | Something went wrong on our end. |
 
+The fetch endpoint can also return `422` (page-level fetch failure: `not_found`, `blocked`, or `unextractable`) and `503` (temporarily unavailable — retry). See [content retrieval error handling](/search/content-retrieval#error-handling).
+
 <AccordionGroup>
 
 <Accordion title="400 — Bad request">

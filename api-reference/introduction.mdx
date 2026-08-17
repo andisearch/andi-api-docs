@@ -17,8 +17,6 @@ The Andi AI Search API has three endpoints: search, fetch, and news.
 https://api.andiai.com
 ```
 
-`https://search-api.andisearch.com` remains supported as a legacy alias of `api.andiai.com`.
-
 ## Authentication
 
 Pass your API key in the `x-api-key` header with every request:
@@ -34,8 +32,8 @@ Get an API key from the [API Console](https://console.andiai.com).
 
 | Method | Path | Description |
 |---|---|---|
-| `GET` | `/api/v1/search` | Search the web |
-| `POST` | `/api/v1/search` | Search the web with parameters in a JSON body. Preferred for location-bearing requests. |
+| `GET` | `/api/v1/search` | Search the web. Returns JSON, or LLM-ready markdown with `format=context`. |
+| `POST` | `/api/v1/search` | Search the web with parameters in a JSON body. Preferred for location-bearing requests. Same output formats as GET. |
 | `GET` | `/api/v1/fetch` | Fetch a web page as clean extracted content (JSON or LLM-ready markdown). See [content retrieval](/search/content-retrieval). |
 | `GET` | `/api/v1/news/:topic` | Curated, ranked news feed for one of 23 fixed topics — no query required. See [news feeds](/search/news-feeds). |
 

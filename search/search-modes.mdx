@@ -99,20 +99,6 @@ effort: "high"
 `effort` also works on [`/api/v1/fetch`](/search/content-retrieval#using-the-effort-parameter), shaping how thoroughly a page is retrieved.
 </Tip>
 
-## Pricing
-
-Search requests are priced on outcome: the charge reflects the actual work the search performed. With `auto`, that means the price follows the effort Andi chose for each query. With a pinned mode, cost is more uniform call to call. The billed amount is returned in every response as `metrics.cost_dollars` (JSON) or `cost_dollars` in the frontmatter (`format=context`).
-
-```json
-{
-  "metrics": {
-    "cost_dollars": 0.0043,
-    "duration": 1240,
-    "results_returned": 10
-  }
-}
-```
-
 ## The `reranker` parameter
 
 The `reranker` parameter controls the strength of semantic reranking applied to your results:
@@ -131,6 +117,24 @@ Stronger reranking improves result ordering for complex or ambiguous queries, at
 curl "https://api.andiai.com/api/v1/search?q=effects+of+sleep+deprivation+on+cognition&searchMode=deep&reranker=large" \
   -H "x-api-key: YOUR_API_KEY"
 ```
+
+## Pricing
+
+Search requests are priced on outcome: the charge reflects the actual work the search performed. With `auto`, that means the price follows the effort Andi chose for each query. With a pinned mode, cost is more uniform call to call. The billed amount is returned in every response as `metrics.cost_dollars` (JSON) or `cost_dollars` in the frontmatter (`format=context`).
+
+```json
+{
+  "metrics": {
+    "cost_dollars": 0.0043,
+    "duration": 1240,
+    "results_returned": 10
+  }
+}
+```
+
+## MCP tool
+
+Agents using the [Andi Search MCP server](/resources/ai-agents#andi-search-mcp-server) control the same behavior through the `andi_web_search` tool — its `searchMode` and `effort` parameters accept the values on this page.
 
 ## Examples
 

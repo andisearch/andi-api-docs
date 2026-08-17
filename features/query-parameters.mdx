@@ -74,7 +74,7 @@ curl "https://api.andiai.com/api/v1/search?q=machine+learning&extracts=true" \
 `metadata=full` adds latency because it fetches additional data from each result page. Use it only when you need `contentType` or `reader` data.
 </Warning>
 
-## Filtering parameters
+## Locale and safety parameters
 
 | Parameter | Type | Default | Description |
 |---|---|---|---|
@@ -82,7 +82,7 @@ curl "https://api.andiai.com/api/v1/search?q=machine+learning&extracts=true" \
 | `country` | string | `US` | ISO 3166-1 country code for locale bias (e.g., `US`, `GB`, `DE`) |
 | `sourceCountry` | string | — | ISO 3166-1 country code to restrict results by source country |
 | `language` | string | `en` | ISO 639-1 language code (e.g., `en`, `es`, `fr`). The `lang:` query operator takes precedence. |
-| `units` | string | auto | Unit system for weather/calculations: `metric`, `imperial`. Defaults based on `country`. |
+| `units` | string | — | Unit system for weather/calculations: `metric`, `imperial`. Defaults based on `country`. |
 
 ## Date filtering
 
@@ -92,13 +92,7 @@ curl "https://api.andiai.com/api/v1/search?q=machine+learning&extracts=true" \
 | `dateFrom` | date | Results published on or after this date (`YYYY-MM-DD`) |
 | `dateTo` | date | Results published on or before this date (`YYYY-MM-DD`) |
 
-Use either `dateRange` for relative filtering or `dateFrom`/`dateTo` for absolute date ranges. See [filtering](/features/filtering) for details.
-
-```bash
-# Results from the past week
-curl "https://api.andiai.com/api/v1/search?q=AI+news&dateRange=week" \
-  -H "x-api-key: YOUR_API_KEY"
-```
+Use either `dateRange` for relative filtering or `dateFrom`/`dateTo` for absolute date ranges. See [filtering](/features/filtering) for examples and details.
 
 ## Domain filtering
 
@@ -107,13 +101,7 @@ curl "https://api.andiai.com/api/v1/search?q=AI+news&dateRange=week" \
 | `includeDomains` | string | Comma-separated domains to restrict results to |
 | `excludeDomains` | string | Comma-separated domains to exclude from results |
 
-Both support wildcards: `*.example.com` matches all subdomains. See [filtering](/features/filtering) for details.
-
-```bash
-# Search only on specific sites
-curl "https://api.andiai.com/api/v1/search?q=python+tutorials&includeDomains=docs.python.org,realpython.com" \
-  -H "x-api-key: YOUR_API_KEY"
-```
+Both support wildcards: `*.example.com` matches all subdomains. See [filtering](/features/filtering) for examples and details.
 
 ## Term filtering
 
@@ -141,7 +129,7 @@ curl "https://api.andiai.com/api/v1/search?q=python+tutorials&includeDomains=doc
 
 ## Location parameters
 
-Location can be passed as flat keys on GET or POST. POST is preferred for location-bearing requests.
+Location can be passed as flat keys on GET or POST. Prefer POST for location-bearing requests — a request body keeps coordinates out of URL query strings and access logs.
 
 | Parameter | Type | Description |
 |---|---|---|

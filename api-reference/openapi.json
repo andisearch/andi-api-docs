@@ -9,10 +9,6 @@
     {
       "url": "https://api.andiai.com",
       "description": "Production"
-    },
-    {
-      "url": "https://search-api.andisearch.com",
-      "description": "Legacy (same service)"
     }
   ],
   "security": [
@@ -180,7 +176,7 @@
           {
             "name": "extracts",
             "in": "query",
-            "description": "Include text extracts from result pages in the response.",
+            "description": "Include text extracts from result pages in the response. Defaults to `true` when `format=context`.",
             "schema": {
               "type": "boolean",
               "default": false
@@ -352,7 +348,7 @@
           {
             "name": "linkFormat",
             "in": "query",
-            "description": "Field name for result URLs. Use `url` to receive the URL field as `url` instead of the default `link`. Only affects the `/search` and `/results` endpoints.",
+            "description": "Field name for result URLs. Use `url` to receive the URL field as `url` instead of the default `link`. Only affects the `/search` endpoint.",
             "schema": {
               "type": "string",
               "enum": [
@@ -411,11 +407,17 @@
         ],
         "responses": {
           "200": {
-            "description": "Search results",
+            "description": "Search results. JSON by default; LLM-ready markdown with YAML frontmatter when `format=context`.",
             "content": {
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/SearchResponse"
+                }
+              },
+              "text/markdown": {
+                "schema": {
+                  "type": "string",
+                  "description": "Markdown results with YAML frontmatter, returned when `format=context`."
                 }
               }
             }
@@ -684,7 +686,7 @@
                       "url"
                     ],
                     "default": "link",
-                    "description": "Field name for result URLs. Use `url` to receive the URL field as `url` instead of the default `link`. Only affects the `/search` and `/results` endpoints."
+                    "description": "Field name for result URLs. Use `url` to receive the URL field as `url` instead of the default `link`. Only affects the `/search` endpoint."
                   },
                   "imageFormat": {
                     "type": "string",
@@ -763,11 +765,17 @@
         },
         "responses": {
           "200": {
-            "description": "Search results",
+            "description": "Search results. JSON by default; LLM-ready markdown with YAML frontmatter when `format=context`.",
             "content": {
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/SearchResponse"
+                }
+              },
+              "text/markdown": {
+                "schema": {
+                  "type": "string",
+                  "description": "Markdown results with YAML frontmatter, returned when `format=context`."
                 }
               }
             }
@@ -1102,6 +1110,7 @@
                 "australia",
                 "programming",
                 "startups",
+                "top",
                 "hn-frontpage",
                 "ai-news",
                 "tech-news"
@@ -1219,6 +1228,7 @@
                     "australia",
                     "programming",
                     "startups",
+                    "top",
                     "hn-frontpage",
                     "ai-news",
                     "tech-news"
@@ -1301,7 +1311,7 @@
           },
           "correctedQuery": {
             "type": "string",
-            "description": "Spell-corrected query. Only present when deep search detects and corrects a misspelling in the original query."
+            "description": "Spell-corrected query. Present when a misspelling in the original query is detected and corrected — any mode can return it; deep and exhaustive modes run the strongest spell correction."
           },
           "related_searches": {
             "type": "array",
@@ -1406,9 +1416,10 @@
           },
           "type": {
             "type": "string",
-            "description": "Result type.",
+            "description": "Result type. Only included when `metadata=full`.",
             "enum": [
               "website",
+              "blog",
               "news",
               "video",
               "image",
@@ -1429,7 +1440,7 @@
           "image": {
             "type": "string",
             "format": "uri",
-            "description": "Preview image URL, when available."
+            "description": "Preview image URL, when available. Only included when `metadata=full`."
           },
           "snippet": {
             "type": "string",
@@ -1453,6 +1464,25 @@
           "reader": {
             "type": "object",
             "description": "Reader data with extracted page content. Only included when `metadata=full`."
+          },
+          "contentSafety": {
+            "type": "object",
+            "description": "Safety classification. Only included when `metadata=full`.",
+            "properties": {
+              "rating": {
+                "type": "string",
+                "enum": ["safe", "unsafe", "unknown"],
+                "description": "Content safety rating."
+              },
+              "safeSearchApplied": {
+                "type": "boolean",
+                "description": "Whether safe-search filtering was applied to this result."
+              }
+            }
+          },
+          "bang": {
+            "type": "string",
+            "description": "Bang shortcut for the result domain. Only included when `metadata=full`."
           }
         },
         "required": [
@@ -1664,6 +1694,15 @@
           "cost_dollars": {
             "type": "number",
             "description": "Amount charged to your account for this request in USD, after any discounts. Pricing is outcome-based — each request is charged for the work performed and the content delivered, whether the effort was set automatically (`auto`) or pinned with a fixed mode."
+          },
+          "effort": {
+            "type": "string",
+            "enum": ["low", "medium", "high", "max"],
+            "description": "Resolved effort tier for this request — the tier `auto` mode selected, or the one pinned via `searchMode`/`effort`."
+          },
+          "response_time_ms": {
+            "type": "integer",
+            "description": "Total server response time in milliseconds."
           }
         }
       },

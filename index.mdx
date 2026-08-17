@@ -42,7 +42,7 @@ https://api.andiai.com
 
 ## Authentication
 
-All requests require an API key passed in the `x-api-key` header. Get your key from the [API Console](https://console.andiai.com/signup). The same key works across the REST API, the CLI, and the MCP server.
+All requests require an API key passed in the `x-api-key` header. Get your key from the [API Console](https://console.andiai.com/signup). The same key works across the REST API, the CLI, and the MCP server — see [authentication](/getting-started/authentication) for key management and security practices.
 
 ## Core endpoints
 
@@ -64,8 +64,11 @@ The [Andi CLI](/getting-started/cli) wraps search, fetch, and a local MCP server
 
 ```bash
 export ANDI_API_KEY=YOUR_API_KEY
-npx -y @andiai/cli search "hello world"
+npm install -g @andiai/cli
+andi search "hello world"
 ```
+
+Or run it without installing: `npx -y @andiai/cli search "hello world"`
 
 ## MCP server
 

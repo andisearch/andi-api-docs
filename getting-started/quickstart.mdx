@@ -18,12 +18,20 @@ import AgentInstall from '/snippets/agent-install.mdx';
 
 ## CLI quick-start
 
-Search from your terminal without writing any code — get a key from the [API Console](https://console.andiai.com/signup), then:
+Search from your terminal without writing any code — get a key from the [API Console](https://console.andiai.com/signup), then install the CLI and run it:
 
 ```bash
 export ANDI_API_KEY=YOUR_API_KEY
+npm install -g @andiai/cli
+
+andi search "what is RAG"
+andi fetch https://en.wikipedia.org/wiki/Retrieval-augmented_generation
+```
+
+Or run it without installing:
+
+```bash
 npx -y @andiai/cli search "what is RAG"
-npx -y @andiai/cli fetch https://en.wikipedia.org/wiki/Retrieval-augmented_generation
 ```
 
 See the [CLI guide](/getting-started/cli) for output formats and the local MCP server.
@@ -36,7 +44,7 @@ See the [CLI guide](/getting-started/cli) for output formats and the local MCP s
 
 <Step title="Get your API key">
 
-Sign in to the [API Console](https://console.andiai.com) and create an API key. Copy it — you'll need it for the next step.
+Sign in to the [API Console](https://console.andiai.com) and create an API key. Copy it — you'll need it for the next step. See [authentication](/getting-started/authentication) for key management and security practices.
 
 </Step>
 
