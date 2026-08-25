@@ -183,7 +183,7 @@
             }
           },
           {
-            "name": "enrichContent",
+            "name": "content",
             "in": "query",
             "description": "Fetch and include full page content for results, beyond the standard description and snippet. Increases response time; the time budget scales with `searchMode` (more time is allotted for `deep` and `exhaustive`).",
             "schema": {
@@ -192,9 +192,19 @@
             }
           },
           {
+            "name": "enrichContent",
+            "in": "query",
+            "deprecated": true,
+            "description": "Deprecated alias of `content`. Retained for backward compatibility; use `content` instead.",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
+          },
+          {
             "name": "maxContentLength",
             "in": "query",
-            "description": "Maximum number of characters of enriched content to return per result. Only applies when `enrichContent` is true.",
+            "description": "Maximum number of characters of enriched content to return per result. Only applies when `content` (or its deprecated alias `enrichContent`) is true.",
             "schema": {
               "type": "integer"
             }

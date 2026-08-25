@@ -23,4 +23,12 @@ run_core_params_tests() {
   # depth=deep
   api_get "q=programming+languages&depth=deep"
   assert_status "200" "depth=deep returns 200"
+
+  # content=true — enriched content (reader fields ride metadata=full)
+  api_get "q=programming+languages&limit=2&content=true&metadata=full"
+  assert_status "200" "content=true returns 200"
+
+  # enrichContent=true — deprecated alias for content
+  api_get "q=programming+languages&limit=2&enrichContent=true&metadata=full"
+  assert_status "200" "enrichContent=true (deprecated alias) returns 200"
 }
