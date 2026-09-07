@@ -140,7 +140,7 @@ For MCP clients that only support the stdio transport, the [Andi CLI](/getting-s
 
 ### `andi_web_search`
 
-Searches the web and returns LLM-ready markdown. Wraps `GET /api/v1/search` with `format=context` and `metadata=full`.
+Searches the web and returns LLM-ready markdown. Wraps `GET /api/v1/search` with `format=context` and `metadata=agent`.
 
 | Parameter | Type | Default | Description |
 |---|---|---|---|
@@ -158,12 +158,13 @@ Searches the web and returns LLM-ready markdown. Wraps `GET /api/v1/search` with
 | `dateRange` | string | — | Recency filter: `24h`, `7d`, `30d`, `90d`, `1y` |
 | `includeDomains` | string | — | Comma-separated domains to restrict results to |
 | `excludeDomains` | string | — | Comma-separated domains to exclude |
+| `types` | string | every array except `images` | Comma-separated list of which result arrays to return: `web`, `news`, `videos`, `images`, `social`, `academic`, `places`, `profiles`, `tools`, `docs`, `agents`, `all`. See [response type selection](/features/query-parameters#response-type-selection). |
 
 <Note>
 The MCP tool caps `limit` at 50. The REST endpoint allows up to 100.
 </Note>
 
-Results carry the `metadata=full` fields — `content_type`, `word_count`, `lang`, `publisher`, `summary` — in each result's frontmatter when available (see [response format](/features/response-format#per-result-structure)), plus a per-call `cost_dollars`. Results default to extracts; set `content=true` or follow up with `andi_fetch_url` only when extracts aren't enough.
+MCP requests are agent requests by definition, so results carry the agent-first fields described below — `agent`, `quickstart`, the compact `reader` object, and `tools`/`docs`/`agents` arrays — plus a per-call `cost_dollars`. Results default to extracts; set `content=true` or follow up with `andi_fetch_url` only when extracts aren't enough.
 
 ### `andi_fetch_url`
 
@@ -213,9 +214,121 @@ Set `ANDI_API_KEY` in your environment before first use.
 
 The same repository works with the skills CLI — `npx skills add andisearch/andi-agent-skills` — and with Codex's skill installer. See the [repo README](https://github.com/andisearch/andi-agent-skills#install) for the full install matrix, including the Codex plugin.
 
-## Agent-native output
+## Agent-first responses
 
 The API supports `format=context`, which returns search results as markdown with YAML frontmatter — sized for LLM context windows and ready to use without JSON parsing. See [response format](/features/response-format) for the full contract.
+
+Beyond the format, results can carry agent-specific fields — which `.md` version of a page exists, its site's llms.txt index, an MCP server URL, an install command — so you can act on a result without a follow-up fetch.
+
+### What counts as an agent request
+
+A request is an agent request when it matches **any one** of the following. You don't need all of them:
+
+- `metadata=agent`
+- A request through the MCP server or the [CLI](/getting-started/cli)
+- `format=context`
+- `Accept: text/markdown`
+- `intent=AgentToolsIntent`
+- A `types` value naming `tools`, `docs`, or `agents`
+
+`metadata` defaults to `agent` automatically when any of these signals is present and you didn't set `metadata` yourself. A plain JSON request's response shape is unchanged unless you opt in.
+
+### What changes
+
+- Each result may carry a compact `agent` object: which `.md` version of that page exists, the llms.txt index covering its path (with links filtered to your query), the site's permissions for AI use, and the origin it belongs to — plus a `quickstart` summary (MCP URL, install command, docs link) computed with no extra fetch.
+- Top-level `extracts` (query-relevant passages) defaults to on for agent requests.
+- Three extra arrays group agent-relevant results the same way `news`/`videos` do: `tools`, `docs`, `agents`. `agents` holds one entry per site in the results that publishes anything for agents — the ranked result itself, in the ordinary result shape, plus that site's full catalog: llms.txt tree, MCP server card, OpenAPI/API catalog, skills, install and auth guides, permissions, and sitemaps. An origin appears here only because a page from it is already in `results`; origins are never added on their own. `agents[]` is capped at `limit`, the same as the other arrays.
+- `metadata=agent` also keeps a compact `reader` object per result — word count, access class, authors, keywords, alternate formats (including the `.md` twin) — plus, when the page's own structured data has them: FAQs, listing items with ratings, how-to steps, breadcrumbs, `sameAs` links, and named entities. Never page bodies unless you also pass `content=true`.
+- With `extracts=true` (the default for agent requests), each site's own agent files — llms.txt, install.md, skills, and similar — come back with query-relevant passages of their own; with `content=true`, their full markdown. Both ride inside that site's entry in `agents[]`. Ask for neither and those files still appear, just without their own text.
+- By default, an agent request's arrays other than `results` and `images` have the items already present in `results` removed, so you don't pay context budget for duplicates. Set `types=all` to get everything, undeduplicated.
+
+### The result.agent object
+
+```json
+{
+  "origin": "https://docs.slack.dev",
+  "page": {
+    "markdown_url": "https://docs.slack.dev/ai/slack-mcp-server.md",
+    "llms_txt": { "url": "https://docs.slack.dev/llms.txt", "scope": "root" },
+    "links": [{ "title": "MCP server setup", "url": "https://docs.slack.dev/ai/slack-mcp-server" }]
+  },
+  "permissions": { "search": "allow", "ai_input": "allow", "ai_train": "disallow" }
+}
+```
+
+`origin` is the key into the response's `agents[]` array — look up the matching item there for the site's full catalog. `permissions` only appears when the page's own permissions differ from the site's. `result.quickstart` sits alongside `agent` at the top level of the result, never nested inside it.
+
+### The agents array
+
+Each item is a full result — the same shape as an item in `results` — plus the site's full `agent` catalog:
+
+```json
+{
+  "title": "Slack API docs",
+  "link": "https://docs.slack.dev",
+  "desc": "Build apps for Slack.",
+  "source": "docs.slack.dev",
+  "agent": {
+    "origin": "https://docs.slack.dev",
+    "capabilities": { "accepts_markdown": true, "webmcp": false },
+    "surfaces": [
+      { "kind": "llms.txt", "url": "https://docs.slack.dev/llms.txt", "scope": "root", "link_count": 42 },
+      { "kind": "mcp-server-card", "url": "https://docs.slack.dev/.well-known/mcp/server-card.json" },
+      { "kind": "install-md", "url": "https://docs.slack.dev/install.md" }
+    ],
+    "permissions": { "search": "allow", "ai_input": "allow", "ai_train": "disallow" },
+    "sitemaps": ["https://docs.slack.dev/sitemap.xml"]
+  },
+  "quickstart": {
+    "mcp": { "url": "https://docs.slack.dev/mcp", "transport": "http" },
+    "llms_txt": { "url": "https://docs.slack.dev/llms.txt", "scope": "root" }
+  }
+}
+```
+
+Because `agents[]` items carry the full result shape, you get the content you need — `reader`, `extracts`, `snippet`, and `content` when requested — straight from the array, at the depth your request asked for.
+
+### Context format blocks
+
+At `metadata=agent`, `format=context` articles carry the same full frontmatter as `metadata=full` — `domain`, `publisher`, `type`, `content_type`, `lang`, `word_count`, `image`, `keywords`, `summary` when available — in addition to the agent blocks below.
+
+An `<agent_index>` block appears once, near the top of the response, with one line per site in `agents[]`:
+
+```text
+<agent_index count="1">
+- docs.slack.dev: mcp https://docs.slack.dev/mcp; docs https://docs.slack.dev/llms.txt (42 links)
+</agent_index>
+```
+
+When you pass `extracts=true` or `content=true`, that site's own content-bearing agent files (llms.txt, install.md, skills) render inside `<agent_index>` as `<surface>` blocks — query extracts, full markdown, or both:
+
+```text
+<agent_index count="1">
+- docs.slack.dev: mcp https://docs.slack.dev/mcp; docs https://docs.slack.dev/llms.txt (42 links)
+<surface origin="docs.slack.dev" url="https://docs.slack.dev/llms.txt" kind="llms.txt">
+<extracts>
+> The Slack MCP server exposes channel and message tools over the Model Context Protocol.
+</extracts>
+</surface>
+</agent_index>
+```
+
+A per-result `<agent>` block appears after `<extracts>` inside each `<article>`, with that page's own agent facts:
+
+```text
+<agent origin="https://docs.slack.dev">
+use:
+  mcp: https://docs.slack.dev/mcp (http)
+docs:
+  index: https://docs.slack.dev/llms.txt (scope: root)
+  page_md: https://docs.slack.dev/ai/slack-mcp-server.md
+  links: 3 matched "slack mcp server"
+permissions: ai_train=disallow
+origin: see agent_index docs.slack.dev
+</agent>
+```
+
+When the page's own structured data has FAQ, listing, or breadcrumb content, `<faq>`, `<items>`, and `<breadcrumbs>` blocks render inside the `<article>` after `<extracts>`, using the same data as `reader.faqs`/`reader.items`/`reader.breadcrumbs`.
 
 ## Keyless pay-per-call
 

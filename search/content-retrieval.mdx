@@ -57,6 +57,22 @@ curl "https://api.andiai.com/api/v1/fetch?url=https://example.com/article" \
 
 Fields like `author`, `date`, `image`, and `site_name` appear when the page provides them.
 
+### Agent and typed page fields
+
+The response also carries the same agent-facing fields a search result does, when the page has them:
+
+| Field | Type | Description |
+|---|---|---|
+| `agent` | object | The page's agent catalog — surfaces (llms.txt, MCP server card, and similar), permissions, sitemaps, capabilities. See [agent-first responses](/resources/ai-agents#agent-first-responses). |
+| `quickstart` | object | One-call summary of how to use the site programmatically — MCP URL, install command, docs link. |
+| `authors`, `keywords` | array | Structured authors and page-declared keywords. |
+| `alternates` | array | `<link rel>` alternates — the `.md` twin, feeds, canonical, license. |
+| `publisher_url`, `publisher_logo_url` | string | The publisher's canonical site URL and logo. |
+| `content_source` | string | Where the delivered content came from: `page`, `structured-data`, or `page+structured-data`. |
+| `faqs`, `items`, `howto`, `breadcrumbs`, `sameAs`, `entities` | array | The page's own structured data — FAQ pairs, listing items, how-to steps, breadcrumb trail, identity links, and named entities — when the page declares them. |
+
+All of these are omitted, not empty, when the page has nothing to offer for that field.
+
 ## Context format
 
 With `format=context`, the response is markdown with YAML frontmatter — ready to pass into an LLM context window:

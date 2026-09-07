@@ -42,6 +42,10 @@ When not set, the API auto-detects intent from the query. You can force a specif
 
 The API also accepts full intent names (e.g., `FallbackSearchIntent`, `VideoSearchIntent`) and resolves matches flexibly through exact match, case-insensitive match, and substring match.
 
+<Note>
+Setting `intent=AgentToolsIntent` (any `searchMode`) is also an agent-request signal — see [agent-first responses](/resources/ai-agents#agent-first-responses). Intent never restricts whether agent metadata appears; it only affects which sources the API searches.
+</Note>
+
 ```bash
 # Force news intent
 curl "https://api.andiai.com/api/v1/search?q=AI+startups&intent=news" \
@@ -53,12 +57,41 @@ curl "https://api.andiai.com/api/v1/search?q=AI+startups&intent=news" \
 | Parameter | Type | Default | Description |
 |---|---|---|---|
 | `format` | string | `json` | Response format: `json` or `context`. The `context` format returns results as markdown text with YAML frontmatter, suitable for LLM context windows. See [response format](/features/response-format). |
-| `metadata` | string | `basic` | Metadata level: `basic` or `full`. With `full`, results include `contentType` and `reader` data. |
-| `extracts` | boolean | `false` (`true` for `format=context`) | Include longer text extracts from result pages |
+| `metadata` | string | `basic` | Metadata level: `basic`, `full`, or `agent`. With `full`, results include `contentType` and `reader` data. With `agent`, results also include a compact `agent` object, a `quickstart` summary, and the `tools`/`docs`/`agents` arrays — see [agent-first responses](/resources/ai-agents#agent-first-responses). `metadata` defaults to `agent` automatically on agent requests (MCP, the CLI, `format=context`, `Accept: text/markdown`, `intent=AgentToolsIntent`, or a `types` value naming `tools`/`docs`/`agents`) unless you set it yourself. |
+| `types` | string | `all` | Comma-separated list of which result arrays the response includes. See [response type selection](#response-type-selection) below. |
+| `extracts` | boolean | `false` (`true` for `format=context` or an agent request) | Include longer text extracts from result pages |
 | `enrichContent` | boolean | `false` | Fetch full page content via the reader service. Budget scales with `searchMode` (fast ~2.5s cap, exhaustive ~12s cap). |
 | `maxContentLength` | integer | — | Caps enriched content length |
 | `imageFormat` | string | `long` | Image field naming: `short` or `long` |
 | `linkFormat` | string | `link` | Field name for result URLs: `link` (default) or `url` |
+
+<Note>
+At `metadata=agent`, an explicit `content=true` includes the page body on results too — the same as `metadata=full`. Without `content=true`, `metadata=agent` never returns page bodies.
+</Note>
+
+### Response type selection
+
+The `types` parameter picks which result arrays a response carries — it never changes which sources run, how results rank, or billing.
+
+| Value | Description |
+|---|---|
+| `web` | The main `results` list |
+| `news`, `videos`, `images`, `social`, `academic`, `places`, `profiles` | The type-specific arrays described in [response format](/features/response-format#type-specific-arrays) |
+| `tools`, `docs`, `agents` | Agent-facing arrays — see [agent-first responses](/resources/ai-agents#agent-first-responses) |
+| `all` | Every array (default for a plain request) |
+
+Pass a comma-separated list (GET) or a JSON array or comma-separated string in the POST body:
+
+```bash
+curl "https://api.andiai.com/api/v1/search?q=openai&types=news,social" \
+  -H "x-api-key: YOUR_API_KEY"
+```
+
+- Omitting `web` returns `results: []`. Answer fields (`answer`, `weather`, `calculation`, `related_searches`, `results_type`, `metrics`) are always present, whatever `types` you pass.
+- Naming `tools`, `docs`, or `agents` makes the request an agent request (see [agent-first responses](/resources/ai-agents#agent-first-responses)).
+- An array you name explicitly returns up to `limit` items. Arrays included by default keep their existing caps.
+- An unknown value returns a `400` listing the valid names.
+- **Default when omitted:** `all` for a plain request. For an agent request, every array except `images`, with items already present in `results` removed from the others — except `agents` and `profiles`, which are never deduplicated against `results` (their items are not duplicates of the main list by construction).
 
 ```bash
 # Get results as markdown for LLM context

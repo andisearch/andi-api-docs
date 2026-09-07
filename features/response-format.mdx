@@ -45,6 +45,11 @@ Depending on the query intent, the response may include additional arrays alongs
 | `profiles` | People-related queries |
 | `social` | Social media queries |
 | `academic` | Scholarly queries |
+| `tools` | Agent requests — MCP servers, CLIs, SDKs (see [agent-first responses](/resources/ai-agents#agent-first-responses)) |
+| `docs` | Agent requests — documentation sites and llms.txt indexes |
+| `agents` | Agent requests — one entry per site in `results` that publishes agent surfaces |
+
+Use the [`types`](/features/query-parameters#response-type-selection) parameter to choose which of these arrays a response includes.
 
 ## Search results
 
@@ -73,6 +78,20 @@ These fields appear on results when you pass `metadata=full`. They are not inclu
 | `contentSafety` | object | Safety classification: `{rating, safeSearchApplied}` where `rating` is `"safe"`, `"unsafe"`, or `"unknown"` |
 | `reader` | object | Extracted page content and metadata |
 | `bang` | string | Bang shortcut for the result domain |
+
+`type` and `contentType` are also included at `metadata=agent`. `image`, `contentSafety`, and `bang` are not — see the compact field set below.
+
+### Fields added by `metadata=agent`
+
+These fields appear on results when you pass `metadata=agent`, or when your request is an [agent request](/resources/ai-agents#what-counts-as-an-agent-request) and you didn't set `metadata` yourself (it defaults to `agent`).
+
+| Field | Type | Description |
+|---|---|---|
+| `agent` | object | Compact per-page agent metadata: `.md` version, nearest llms.txt index, site permissions, and origin. Full site catalog on `agents[]` items instead. |
+| `quickstart` | object | One-call summary of how to use the site programmatically — MCP URL, install command, docs link. Sits alongside `agent`, not nested inside it. |
+| `reader` | object | A compact subset: `word_count`, `contentAccess`, `completeContent`, `leadIn`, `content_source`, `authors`, `keywords`, `alternates`, and (when present) `items`, `faqs`, `howto`, `breadcrumbs`, `sameAs`, `entities`. Never a page body unless you also pass `content=true`. |
+
+See [agent-first responses](/resources/ai-agents#agent-first-responses) for the full `agent`/`quickstart`/`agents[]` shapes and examples.
 
 ### Accessing key fields
 
@@ -346,11 +365,11 @@ zones over the past decade.
 </article>
 ```
 
-A `source` line appears in the frontmatter only when the display source differs from the domain in the `<article>` tag. With `metadata=full`, each article's frontmatter adds `domain`, `publisher`, `type`, `content_type`, `lang`, `word_count`, `image`, `keywords`, and `summary` when available.
+A `source` line appears in the frontmatter only when the display source differs from the domain in the `<article>` tag. With `metadata=full` or `metadata=agent`, each article's frontmatter adds `domain`, `publisher`, `type`, `content_type`, `lang`, `word_count`, `image`, `keywords`, and `summary` when available.
 
 ### Type-specific sections
 
-The same type-specific groups the JSON response carries as [additional arrays](#type-specific-arrays) render as trailing sections after the main results, so a context-format caller sees everything a JSON caller would. Sections appear only when the group has results, in this order: `Academic results`, `News results`, `Video results`, `Social results`, `Place results`, `Profile results`. (`images` is JSON-only.)
+The same type-specific groups the JSON response carries as [additional arrays](#type-specific-arrays) render as trailing sections after the main results, so a context-format caller sees everything a JSON caller would. Sections appear only when the group has results, in this order: `Academic results`, `News results`, `Video results`, `Social results`, `Place results`, `Profile results`, and — on [agent requests](/resources/ai-agents#what-counts-as-an-agent-request) — `Tool results`, `Docs results`, `Agent results`. (`images` is JSON-only.) Choose which sections render with [`types`](/features/query-parameters#response-type-selection).
 
 Each section is a markdown heading followed by a compact item list — title, url, and when available date, source, description, and duration for videos:
 
@@ -371,6 +390,10 @@ Items already present in the main `<article>` results are not repeated in these 
 ### Extracts in context format
 
 `extracts` defaults to **on** for `format=context` (the opposite of JSON, where it defaults to off). To disable extracts in context format, pass `extracts=false`.
+
+### Agent blocks
+
+On [agent requests](/resources/ai-agents#what-counts-as-an-agent-request), the context format adds an `<agent_index>` block once near the top of the response, and a per-result `<agent>` block inside each `<article>` after `<extracts>`. With `extracts=true` or `content=true`, a site's own content-bearing agent files (llms.txt, install.md, skills) render inside `<agent_index>` as `<surface>` blocks carrying their own query extracts or full markdown. When a page's own structured data has FAQ, listing, or breadcrumb content, `<faq>`, `<items>`, and `<breadcrumbs>` blocks render inside the article too. See [agent-first responses](/resources/ai-agents#context-format-blocks) for the full block grammar and examples.
 
 ## Next steps
 

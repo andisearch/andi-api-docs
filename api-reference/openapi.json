@@ -163,15 +163,25 @@
           {
             "name": "metadata",
             "in": "query",
-            "description": "Level of metadata to include. `basic` includes standard search metrics. `full` includes extended metadata with content type details and reader data on results.",
+            "description": "Level of metadata to include. `basic` (default) includes standard search metrics. `full` includes extended metadata with content type details and reader data on results. `agent` includes the same extended metadata plus a compact `agent` object and `quickstart` summary on results, `tools`/`docs`/`agents` arrays, and a compact `reader` object — see [agent-first responses](/resources/ai-agents#agent-first-responses). `metadata` defaults to `agent` automatically on agent requests (MCP, the CLI, `format=context`, `Accept: text/markdown`, `intent=AgentToolsIntent`, or a `types` value naming `tools`/`docs`/`agents`) unless you set it yourself.",
             "schema": {
               "type": "string",
               "enum": [
                 "basic",
-                "full"
+                "full",
+                "agent"
               ],
               "default": "basic"
             }
+          },
+          {
+            "name": "types",
+            "in": "query",
+            "description": "Comma-separated list of which result arrays the response includes: `web` (the main `results` list), `news`, `videos`, `images`, `social`, `academic`, `places`, `profiles`, `tools`, `docs`, `agents`, `all`. Shapes the response only — it never changes which sources run, how results rank, or billing. Omitting `web` returns an empty `results` array; answer fields (`answer`, `weather`, `calculation`, `related_searches`, `results_type`, `metrics`) are always present regardless of `types`. Naming `tools`, `docs`, or `agents` makes the request an agent request. Default is `all` for a plain request; an agent request defaults to every array except `images`, with items already present in `results` removed from the others. An unknown name returns a `400`.",
+            "schema": {
+              "type": "string"
+            },
+            "example": "web,news,social"
           },
           {
             "name": "extracts",
@@ -587,10 +597,15 @@
                     "type": "string",
                     "enum": [
                       "basic",
-                      "full"
+                      "full",
+                      "agent"
                     ],
                     "default": "basic",
-                    "description": "Level of metadata to include. `basic` includes standard search metrics. `full` includes extended metadata with content type details and reader data on results."
+                    "description": "Level of metadata to include. `basic` (default) includes standard search metrics. `full` includes extended metadata with content type details and reader data on results. `agent` includes the same extended metadata plus a compact `agent` object and `quickstart` summary on results, `tools`/`docs`/`agents` arrays, and a compact `reader` object — see [agent-first responses](/resources/ai-agents#agent-first-responses). `metadata` defaults to `agent` automatically on agent requests (MCP, the CLI, `format=context`, `Accept: text/markdown`, `intent=AgentToolsIntent`, or a `types` value naming `tools`/`docs`/`agents`) unless you set it yourself."
+                  },
+                  "types": {
+                    "type": "string",
+                    "description": "Comma-separated list of which result arrays the response includes: `web` (the main `results` list), `news`, `videos`, `images`, `social`, `academic`, `places`, `profiles`, `tools`, `docs`, `agents`, `all`. Shapes the response only — it never changes which sources run, how results rank, or billing. Omitting `web` returns an empty `results` array; answer fields (`answer`, `weather`, `calculation`, `related_searches`, `results_type`, `metrics`) are always present regardless of `types`. Naming `tools`, `docs`, or `agents` makes the request an agent request. Default is `all` for a plain request; an agent request defaults to every array except `images`, with items already present in `results` removed from the others. An unknown name returns a `400`."
                   },
                   "extracts": {
                     "type": "boolean",
@@ -1386,6 +1401,27 @@
               "$ref": "#/components/schemas/SearchResult"
             }
           },
+          "tools": {
+            "type": "array",
+            "description": "Agent-tool results — MCP servers, CLIs, SDKs. Only included on agent requests (see `metadata=agent`). Items already present in `results` are removed by default on agent requests.",
+            "items": {
+              "$ref": "#/components/schemas/SearchResult"
+            }
+          },
+          "docs": {
+            "type": "array",
+            "description": "Documentation results — docs sites and llms.txt indexes. Only included on agent requests. Items already present in `results` are removed by default on agent requests.",
+            "items": {
+              "$ref": "#/components/schemas/SearchResult"
+            }
+          },
+          "agents": {
+            "type": "array",
+            "description": "One entry per site in `results` that publishes agent-facing surfaces (llms.txt, MCP server card, OpenAPI/API catalog, skills, and similar). Each item is that site's best-ranked result in the ordinary result shape, plus its full `agent` catalog. An origin appears here only because one of its pages is already in `results` — origins are never added on their own. Capped at `limit`, like the other arrays. Only included on agent requests.",
+            "items": {
+              "$ref": "#/components/schemas/SearchResult"
+            }
+          },
           "weather": {
             "$ref": "#/components/schemas/WeatherResult",
             "description": "Weather data. Present when the query triggers a weather intent."
@@ -1426,7 +1462,7 @@
           },
           "type": {
             "type": "string",
-            "description": "Result type. Only included when `metadata=full`.",
+            "description": "Result type. Only included when `metadata=full` or `metadata=agent`.",
             "enum": [
               "website",
               "blog",
@@ -1469,11 +1505,19 @@
           },
           "contentType": {
             "type": "string",
-            "description": "Content type of the page. Only included when `metadata=full`."
+            "description": "Content type of the page. Only included when `metadata=full` or `metadata=agent`."
           },
           "reader": {
-            "type": "object",
-            "description": "Reader data with extracted page content. Only included when `metadata=full`."
+            "$ref": "#/components/schemas/ReaderData",
+            "description": "Extracted page content and metadata. Included when `metadata=full` (page bodies included only with `content=true`) or `metadata=agent` (a compact subset — no bodies unless `content=true`)."
+          },
+          "agent": {
+            "$ref": "#/components/schemas/AgentObject",
+            "description": "Compact agent-facing metadata for this result's page — which `.md` version exists, the nearest llms.txt index, and site permissions for AI use. Only included on agent requests (MCP, the CLI, `format=context`, `Accept: text/markdown`, `intent=AgentToolsIntent`, `metadata=agent`, or a `types` value naming `tools`/`docs`/`agents`). On the `agents[]` array (see `SearchResponse`), this carries the site's full catalog instead of the compact form."
+          },
+          "quickstart": {
+            "$ref": "#/components/schemas/AgentQuickstart",
+            "description": "One-call summary of how to use this result's site programmatically — MCP URL, install command, docs link. Same gate as `agent`."
           },
           "contentSafety": {
             "type": "object",
@@ -1501,6 +1545,293 @@
           "desc",
           "source"
         ]
+      },
+      "ReaderData": {
+        "type": "object",
+        "description": "Extracted page content and metadata. At `metadata=full`, carries the full field set including page bodies when `content=true`. At `metadata=agent`, carries a compact subset — the access-class fields plus the page facts an agent reads first — and never a page body unless `content=true`.",
+        "properties": {
+          "word_count": {
+            "type": "integer",
+            "description": "Extracted word count."
+          },
+          "contentAccess": {
+            "type": "string",
+            "description": "Publisher content-access policy, e.g. `public`, `paywall-soft`, `paywall-hard`, `registration-required`."
+          },
+          "completeContent": {
+            "type": "boolean",
+            "description": "Whether Andi's retrieval got the full body (independent of the publisher's access policy)."
+          },
+          "leadIn": {
+            "type": "string",
+            "description": "Teaser-content policy: `visible`, `none`, or `unknown`."
+          },
+          "content_source": {
+            "type": "string",
+            "description": "Where the delivered content came from: `page`, `structured-data`, or `page+structured-data` — set when a page's prose is thin and structured data (JSON-LD) fills the body."
+          },
+          "authors": {
+            "type": "array",
+            "description": "Structured page authors.",
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": { "type": "string" },
+                "url": { "type": "string", "format": "uri" }
+              }
+            }
+          },
+          "keywords": {
+            "type": "array",
+            "description": "Page-declared keywords.",
+            "items": { "type": "string" }
+          },
+          "alternates": {
+            "type": "array",
+            "description": "`<link rel>` alternates found on the page — markdown twin, feeds, canonical, license.",
+            "items": {
+              "type": "object",
+              "properties": {
+                "rel": { "type": "string" },
+                "type": { "type": "string" },
+                "href": { "type": "string", "format": "uri" },
+                "title": { "type": "string" }
+              }
+            }
+          },
+          "items": {
+            "type": "array",
+            "description": "Listing items parsed from the page's structured data (e.g. restaurants, products, ranked entries), up to 10.",
+            "items": {
+              "type": "object",
+              "properties": {
+                "position": { "type": "integer" },
+                "name": { "type": "string" },
+                "url": { "type": "string", "format": "uri" },
+                "rating": { "type": "number" },
+                "review_count": { "type": "integer" },
+                "address": { "type": "string" }
+              }
+            }
+          },
+          "faqs": {
+            "type": "array",
+            "description": "Question/answer pairs parsed from the page's FAQ structured data, up to 10.",
+            "items": {
+              "type": "object",
+              "properties": {
+                "question": { "type": "string" },
+                "answer": { "type": "string" }
+              }
+            }
+          },
+          "howto": {
+            "type": "array",
+            "description": "Steps parsed from the page's HowTo structured data, up to 10.",
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": { "type": "string" },
+                "text": { "type": "string" },
+                "url": { "type": "string", "format": "uri" }
+              }
+            }
+          },
+          "breadcrumbs": {
+            "type": "array",
+            "description": "Breadcrumb trail parsed from the page's structured data, up to 8.",
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": { "type": "string" },
+                "url": { "type": "string", "format": "uri" }
+              }
+            }
+          },
+          "sameAs": {
+            "type": "array",
+            "description": "The page's own declared identity links (e.g. official social profiles), up to 10. Distinct from `response.profiles`, which is the answer entity's canonical links.",
+            "items": { "type": "string", "format": "uri" }
+          },
+          "entities": {
+            "type": "array",
+            "description": "Named entities parsed from the page's structured data, up to 5.",
+            "items": {
+              "type": "object",
+              "properties": {
+                "type": { "type": "string" },
+                "name": { "type": "string" },
+                "url": { "type": "string", "format": "uri" }
+              }
+            }
+          },
+          "content": {
+            "type": "string",
+            "description": "Extracted page body text. Only included with `content=true`."
+          },
+          "markdown": {
+            "type": "string",
+            "description": "Extracted page body as markdown. Only included with `content=true`."
+          }
+        }
+      },
+      "AgentPage": {
+        "type": "object",
+        "description": "Page-level agent facts for this specific result.",
+        "properties": {
+          "markdown_url": {
+            "type": "string",
+            "format": "uri",
+            "description": "This page's proven `.md` version, when one exists."
+          },
+          "llms_txt": {
+            "type": "object",
+            "description": "The nearest llms.txt index covering this page's path.",
+            "properties": {
+              "url": { "type": "string", "format": "uri" },
+              "scope": { "type": "string", "enum": ["root", "path", "child"] }
+            }
+          },
+          "links": {
+            "type": "array",
+            "description": "The nearest llms.txt node's links, filtered to the query, up to 10.",
+            "items": {
+              "type": "object",
+              "properties": {
+                "title": { "type": "string" },
+                "url": { "type": "string", "format": "uri" }
+              }
+            }
+          },
+          "permissions": {
+            "$ref": "#/components/schemas/AgentPermissions",
+            "description": "Page-path permissions, present only when they differ from the origin's."
+          }
+        }
+      },
+      "AgentPermissions": {
+        "type": "object",
+        "description": "Robots.txt / Content-Signal / noai permissions, recorded as data — never used to gate what Andi retrieves on a user's behalf.",
+        "properties": {
+          "search": { "type": "string", "enum": ["allow", "disallow", "unknown"] },
+          "ai_input": { "type": "string", "enum": ["allow", "disallow", "unknown"] },
+          "ai_train": { "type": "string", "enum": ["allow", "disallow", "unknown"] }
+        }
+      },
+      "AgentSurface": {
+        "type": "object",
+        "description": "One discovered agent-facing file or endpoint for a site — an llms.txt node, an MCP server card, an OpenAPI spec, install.md, and similar.",
+        "properties": {
+          "kind": {
+            "type": "string",
+            "description": "What kind of surface this is, e.g. `llms.txt`, `mcp-server-card`, `agent-card`, `openapi`, `install-md`, `auth-md`, `skill`."
+          },
+          "url": {
+            "type": "string",
+            "format": "uri"
+          },
+          "title": { "type": "string" },
+          "scope": {
+            "type": "string",
+            "enum": ["root", "path", "child"],
+            "description": "For an `llms.txt` surface: whether this node is the site's root index, a path-scoped index, or a child sub-index."
+          },
+          "link_count": {
+            "type": "integer",
+            "description": "For an `llms.txt` surface: number of links in this node."
+          },
+          "extracts": {
+            "type": "array",
+            "description": "Query-relevant passages from this surface's own text. Only included with `extracts=true` on an agent request, for content-bearing surfaces (e.g. llms.txt, install.md, skills).",
+            "items": { "type": "string" }
+          },
+          "content": {
+            "type": "string",
+            "description": "This surface's own full markdown body. Only included with `content=true` on an agent request, capped by `maxContentLength` (default 20000 characters)."
+          },
+          "truncated": {
+            "type": "boolean",
+            "description": "Whether `content` was cut short by the length cap."
+          }
+        },
+        "required": ["kind", "url"]
+      },
+      "AgentObject": {
+        "type": "object",
+        "description": "Agent-facing site metadata. On an ordinary result this is the compact per-page form (`origin` plus `page`). On an `agents[]` item, this carries the site's full catalog instead.",
+        "properties": {
+          "origin": {
+            "type": "string",
+            "description": "The site's origin URL — the key into the response's `agents[]` array."
+          },
+          "page": {
+            "$ref": "#/components/schemas/AgentPage"
+          },
+          "permissions": {
+            "$ref": "#/components/schemas/AgentPermissions",
+            "description": "Only on `agents[]` items — origin-level permissions."
+          },
+          "surfaces": {
+            "type": "array",
+            "description": "Only on `agents[]` items. The site's discovered agent surfaces — llms.txt (root, path, and child nodes), llms-full.txt, MCP server card, agent card, skills, OpenAPI/API catalog, OAuth metadata, install.md, auth.md, and similar.",
+            "items": { "$ref": "#/components/schemas/AgentSurface" }
+          },
+          "capabilities": {
+            "type": "object",
+            "description": "Only on `agents[]` items.",
+            "properties": {
+              "accepts_markdown": { "type": "boolean" },
+              "webmcp": { "type": "boolean" }
+            }
+          },
+          "sitemaps": {
+            "type": "array",
+            "description": "Only on `agents[]` items, up to 3.",
+            "items": { "type": "string", "format": "uri" }
+          }
+        }
+      },
+      "AgentQuickstart": {
+        "type": "object",
+        "description": "Deterministic one-call summary of how to use this result's site programmatically — computed from its agent surfaces and engine metadata with no extra fetch. Present at the top level of a result (never nested inside `agent`), on agent requests.",
+        "properties": {
+          "mcp": {
+            "type": "object",
+            "properties": {
+              "url": { "type": "string", "format": "uri" },
+              "transport": { "type": "string" },
+              "auth": { "type": "string" }
+            }
+          },
+          "cli": {
+            "type": "object",
+            "properties": {
+              "package": { "type": "string" },
+              "install": { "type": "string" }
+            }
+          },
+          "package": {
+            "type": "object",
+            "properties": {
+              "registry": { "type": "string" },
+              "name": { "type": "string" },
+              "install": { "type": "string" }
+            }
+          },
+          "openapi_url": { "type": "string", "format": "uri" },
+          "docs_url": { "type": "string", "format": "uri" },
+          "llms_txt": {
+            "type": "object",
+            "properties": {
+              "url": { "type": "string", "format": "uri" },
+              "scope": { "type": "string", "enum": ["root", "path", "child"] }
+            }
+          },
+          "install_md": { "type": "string", "format": "uri" },
+          "skill": { "type": "string" },
+          "markdown_url": { "type": "string", "format": "uri" },
+          "auth": { "type": "string", "enum": ["none", "api_key", "oauth"] }
+        }
       },
       "ImageResult": {
         "type": "object",

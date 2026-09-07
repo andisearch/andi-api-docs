@@ -54,6 +54,19 @@ The fetch endpoint can also return `422` (page-level fetch failure: `not_found`,
 - `Invalid API key`
 
 **Fix:** Verify your API key in the [API Console](https://console.andiai.com). Make sure you're passing it in the `x-api-key` header (not as a query parameter or in the `Authorization` header).
+
+A `401` for a missing key includes a machine-readable `signup` field so an agent can self-serve a key without a human in the loop:
+
+```json
+{
+  "error": "Unauthorized",
+  "message": "Missing x-api-key header",
+  "signup": {
+    "trialKeyUrl": "https://console.andiai.com/signup",
+    "docsUrl": "https://docs.andiai.com"
+  }
+}
+```
 </Accordion>
 
 <Accordion title="402 — Insufficient credits">
@@ -62,6 +75,19 @@ The fetch endpoint can also return `422` (page-level fetch failure: `not_found`,
 **Message:** `Your account has insufficient credits. Please add credits to continue.`
 
 **Fix:** [Add credits](https://console.andiai.com) to your account.
+
+A `402` includes a machine-readable `upgrade` field an agent can use to point its user at the right place:
+
+```json
+{
+  "error": "Insufficient Credits",
+  "message": "Your account has insufficient credits. Please add credits to continue.",
+  "upgrade": {
+    "addCreditsUrl": "https://console.andiai.com/billing",
+    "docsUrl": "https://docs.andiai.com"
+  }
+}
+```
 </Accordion>
 
 <Accordion title="429 — Rate limit exceeded">
